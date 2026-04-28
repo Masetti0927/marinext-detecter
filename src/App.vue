@@ -1,160 +1,164 @@
 <script setup>
-import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
+import { useRouter, useRoute } from "vue-router";
+import { computed } from "vue";
+import { useDetectionStore } from "./stores/detection";
 
-const greetMsg = ref("");
-const name = ref("");
+const router = useRouter();
+const route = useRoute();
+const detection = useDetectionStore();
 
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg.value = await invoke("greet", { name: name.value });
+const navItems = [
+  { path: "/", label: "Home", icon: "⌂" },
+  { path: "/detect", label: "Detect", icon: "◎" },
+  { path: "/contrast", label: "Contrast", icon: "◉" },
+  { path: "/charts", label: "Charts", icon: "▤" },
+  { path: "/report", label: "Report", icon: "☰" },
+  { path: "/history", label: "History", icon: "⏰" },
+];
+
+const hasResult = computed(() => !!detection.currentId);
+
+function navigateTo(path) {
+  router.push(path);
 }
 </script>
 
 <template>
-  <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">MarineXt</div>
+      <nav class="sidebar-nav">
+        <button
+          v-for="item in navItems"
+          :key="item.path"
+          class="nav-btn"
+          :class="{ active: route.path === item.path }"
+          @click="navigateTo(item.path)"
+        >
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div v-if="detection.isLoading" class="status-badge loading">
+          Processing...
+        </div>
+        <div v-else-if="hasResult" class="status-badge ready">
+          Result ready
+        </div>
+      </div>
+    </aside>
 
-    <div class="row">
-      <a href="https://vite.dev" target="_blank">
-        <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-      </a>
-      <a href="https://tauri.app" target="_blank">
-        <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-      </a>
-      <a href="https://vuejs.org/" target="_blank">
-        <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-      </a>
-    </div>
-    <p>Click on the Tauri, Vite, and Vue logos to learn more.</p>
-
-    <form class="row" @submit.prevent="greet">
-      <input id="greet-input" v-model="name" placeholder="Enter a name..." />
-      <button type="submit">Greet</button>
-    </form>
-    <p>{{ greetMsg }}</p>
-  </main>
+    <main class="main-content">
+      <router-view />
+    </main>
+  </div>
 </template>
 
-<style scoped>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
-}
-
-</style>
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  font-size: 14px;
+  color: #333;
+  background: #f0f2f5;
 }
 
-.container {
-  margin: 0;
-  padding-top: 10vh;
+.app-shell {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 200px;
+  background: #1a1a2e;
+  color: #e0e0e0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  text-align: center;
+  flex-shrink: 0;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
+.sidebar-brand {
+  padding: 24px 20px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #409eff;
+  letter-spacing: 0.5px;
 }
 
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
+.sidebar-nav {
+  flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: #a0a0b8;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
 }
 
-a:hover {
-  color: #535bf2;
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e0e0e0;
 }
 
-h1 {
+.nav-btn.active {
+  background: rgba(64, 158, 255, 0.15);
+  color: #409eff;
+}
+
+.nav-icon {
+  font-size: 16px;
+  width: 20px;
   text-align: center;
 }
 
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-button {
-  cursor: pointer;
+.status-badge {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  text-align: center;
 }
 
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
+.status-badge.loading {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
 }
 
-input,
-button {
-  outline: none;
+.status-badge.ready {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
 }
 
-#greet-input {
-  margin-right: 5px;
+.main-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
-
-  a:hover {
-    color: #24c8db;
-  }
-
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
-}
-
 </style>

@@ -92,20 +92,65 @@ def save_mask_png(mask: np.ndarray, out_path: str):
     Image.fromarray(mask).save(out_path)
 
 if __name__ == "__main__":
+    import argparse
+    import json
+    import os
+    import sys
 
-    # 创建 session
-    sess = ort.InferenceSession(
-        "marinext_rgb_ema_upscale.onnx",
-        providers=['CPUExecutionProvider']
-    )
-    # 读取图片
-    img = load_rgb_image("1_test.png")
+    parser = argparse.ArgumentParser(description="MarineXt ONNX Inference")
+    parser.add_argument("--input", required=True, help="Path to input image")
+    parser.add_argument("--output", required=True, help="Path to output directory")
+    parser.add_argument("--model", default=None, help="Path to ONNX model file (default: marinext_rgb_ema_upscale.onnx in script dir)")
+    parser.add_argument("--mode", default="rgb", choices=["rgb", "multichannel"], help="Input mode")
+    args = parser.parse_args()
 
-    ort_predict = Marinext_ONNX_MaskPredictor(model_paths=["marinext_rgb_ema_upscale.onnx"])
+    os.makedirs(args.output, exist_ok=True)
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = args.model or os.path.join(script_dir, "marinext_rgb_ema_upscale.onnx")
+
+    if not os.path.exists(model_path):
+        print(json.dumps({"error": f"Model not found: {model_path}"}))
+        sys.exit(1)
+
+    if not os.path.exists(args.input):
+        print(json.dumps({"error": f"Input not found: {args.input}"}))
+        sys.exit(1)
+
+    ort_predict = Marinext_ONNX_MaskPredictor(model_paths=[model_path])
+    img = load_rgb_image(args.input)
     mask_pred = ort_predict.predict(img)
 
-    save_mask_png(
-        mask_pred,
-        "./new_mask_test_1.png",)
+    mask_path = os.path.join(args.output, "mask.png")
+    save_mask_png(mask_pred, mask_path)
+
+    # Compute per-class pixel statistics
+    unique, counts = np.unique(mask_pred, return_counts=True)
+    total_pixels = mask_pred.size
+    stats = {}
+    class_names = {
+        1: "Marine Debris", 2: "Dense Sargassum", 3: "Sparse Floating Algae",
+        4: "Natural Organic Material", 5: "Ship", 6: "Oil Spill",
+        7: "Marine Water", 8: "Sediment-Laden Water", 9: "Foam",
+        10: "Turbid Water", 11: "Shallow Water", 12: "Waves & Wakes",
+        13: "Oil Platform", 14: "Jellyfish", 15: "Sea snot"
+    }
+    for cls_id, cnt in zip(unique.tolist(), counts.tolist()):
+        if cls_id == 0:
+            continue
+        name = class_names.get(cls_id, f"Class_{cls_id}")
+        stats[name] = {
+            "class_id": cls_id,
+            "pixel_count": cnt,
+            "percentage": round(cnt / total_pixels * 100, 4)
+        }
+
+    result = {
+        "mask_path": mask_path,
+        "stats": stats,
+        "total_pixels": total_pixels,
+        "input_path": args.input
+    }
+    print(json.dumps(result))
 
 
