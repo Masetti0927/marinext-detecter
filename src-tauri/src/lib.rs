@@ -39,10 +39,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::detect_rgb,
             commands::detect_multichannel,
+            commands::list_models,
+            commands::get_image_base64,
             commands::get_history_list,
             commands::get_history_detail,
             commands::delete_history,
-            commands::pick_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
