@@ -29,6 +29,7 @@ let maskArray = null;
 const overlayCache = {};
 const boundaryCache = {};
 
+const IMAGE_MARGIN = 24;
 let zoom = 1, panX = 0, panY = 0;
 let dragging = false, lastX = 0, lastY = 0;
 
@@ -112,9 +113,10 @@ async function init() {
 // --- zoom/pan helpers ---
 function fitZoom() {
   if (!chartRef.value) return 1;
+  const m = IMAGE_MARGIN;
   return Math.min(
-    chartRef.value.clientWidth / imgWidth.value,
-    chartRef.value.clientHeight / imgHeight.value
+    (chartRef.value.clientWidth - 2 * m) / imgWidth.value,
+    (chartRef.value.clientHeight - 2 * m) / imgHeight.value
   );
 }
 
@@ -124,8 +126,10 @@ function clampPan() {
   const ch = chartRef.value.clientHeight;
   const sw = imgWidth.value * zoom;
   const sh = imgHeight.value * zoom;
-  panX = Math.min(0, Math.max(cw - sw, panX));
-  panY = Math.min(0, Math.max(ch - sh, panY));
+  const m = IMAGE_MARGIN;
+  // Center when image fits within margin, clamp to margin when it overflows
+  panX = sw <= cw - 2 * m ? (cw - sw) / 2 : Math.min(m, Math.max(cw - sw - m, panX));
+  panY = sh <= ch - 2 * m ? (ch - sh) / 2 : Math.min(m, Math.max(ch - sh - m, panY));
 }
 
 // --- rendering ---
