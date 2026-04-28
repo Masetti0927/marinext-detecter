@@ -33,7 +33,7 @@
     ],
     "resources": [
       "python/main.py",
-      "models/*",
+      "models/**/*",
       "python-runtime/**/*"
     ]
   }
