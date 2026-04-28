@@ -40,8 +40,7 @@ const filteredLegend = computed(() => {
 
 // --- lifecycle ---
 onMounted(async () => {
-  if (!detection.currentId) return;
-  await init();
+  if (detection.currentId) await init();
 });
 
 onUnmounted(() => {
@@ -52,6 +51,10 @@ onUnmounted(() => {
 watch([maskOpacity, maskThreshold], () => {
   refreshMainOverlay();
   applyLayerVisibility();
+});
+
+watch(() => detection.currentId, async (id) => {
+  if (id && !chart) await init();
 });
 
 // --- init ---
@@ -213,7 +216,14 @@ function loadImage(src) {
 </script>
 
 <template>
-  <div class="contrast-root">
+  <div class="contrast-root" v-if="!detection.currentId">
+    <div class="empty-state">
+      <p>No detection data available. Run a detection first.</p>
+      <router-link to="/detect" class="btn-primary">Run Detection</router-link>
+    </div>
+  </div>
+
+  <div class="contrast-root" v-else>
     <div class="canvas-panel">
       <div class="hint-bar">
         <span>Scroll: zoom</span>
@@ -226,17 +236,17 @@ function loadImage(src) {
     <aside class="side-panel">
       <section class="panel-block">
         <h4>Controls</h4>
-        <div class="slider-row">
+        <label class="slider-row">
           <span>Opacity</span>
-          <span>{{ Math.round(maskOpacity * 100) }}%</span>
-        </div>
-        <input type="range" min="0" max="1" step="0.05" v-model="maskOpacity" />
+          <span class="slider-val">{{ Math.round(maskOpacity * 100) }}%</span>
+        </label>
+        <input type="range" min="0" max="1" step="0.05" v-model="maskOpacity" class="slider" />
 
-        <div class="slider-row">
+        <label class="slider-row">
           <span>Threshold</span>
-          <span>{{ maskThreshold }}%</span>
-        </div>
-        <input type="range" min="0" max="5" step="0.1" v-model="maskThreshold" />
+          <span class="slider-val">{{ maskThreshold }}%</span>
+        </label>
+        <input type="range" min="0" max="5" step="0.1" v-model="maskThreshold" class="slider" />
         <p class="hint">Classes below threshold are hidden</p>
       </section>
 
@@ -273,6 +283,32 @@ function loadImage(src) {
   background: #f0f2f5;
   overflow: hidden;
 }
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #888;
+  font-size: 14px;
+  height: 100%;
+}
+
+.btn-primary {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: #409eff;
+  color: #fff;
+  text-decoration: none;
+  display: inline-block;
+}
+
 .canvas-panel {
   flex: 1;
   position: relative;
@@ -317,6 +353,8 @@ function loadImage(src) {
   padding-bottom: 6px;
   border-bottom: 2px solid #f0f2f5;
 }
+
+/* Unified slider styles */
 .slider-row {
   display: flex;
   justify-content: space-between;
@@ -324,7 +362,44 @@ function loadImage(src) {
   color: #666;
   margin: 8px 0 4px;
 }
-input[type="range"] { width: 100%; }
+.slider-val {
+  font-weight: 500;
+  color: #409eff;
+}
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e0e0e0;
+  outline: none;
+  cursor: pointer;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #409eff;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.1s;
+}
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #409eff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
 .hint { font-size: 11px; color: #999; margin-top: 4px; }
 
 .legend-block { flex: 1; }
