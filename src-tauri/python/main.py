@@ -79,12 +79,11 @@ class Marinext_ONNX_MaskPredictor:
         final_pred = np.squeeze(np.apply_along_axis(lambda x: np.bincount(x).argmax(), 0, all_preds))
         return final_pred
 
-def load_rgb_image(rgb_path: str) -> np.ndarray:
+def load_rgb_image(rgb_path: str, target_size=(240, 240)) -> np.ndarray:
     img = Image.open(rgb_path)
-
     if img.mode != "RGB":
         img = img.convert("RGB")
-
+    img = img.resize(target_size, Image.BILINEAR)
     return np.array(img)
 
 def save_mask_png(mask: np.ndarray, out_path: str):
