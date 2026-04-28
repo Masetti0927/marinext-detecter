@@ -89,7 +89,7 @@ async function init() {
   });
   refreshMainOverlay();
 
-  zoom = minZoom();
+  zoom = fitZoom();
   const cw = chartRef.value.clientWidth;
   const ch = chartRef.value.clientHeight;
   panX = (cw - imgWidth.value * zoom) / 2;
@@ -101,7 +101,7 @@ async function init() {
 
   resizeObserver = new ResizeObserver(() => {
     chart?.resize();
-    const mz = minZoom();
+    const mz = fitZoom();
     if (zoom < mz) zoom = mz;
     clampPan();
     applyTransform();
@@ -110,9 +110,9 @@ async function init() {
 }
 
 // --- zoom/pan helpers ---
-function minZoom() {
+function fitZoom() {
   if (!chartRef.value) return 1;
-  return Math.max(
+  return Math.min(
     chartRef.value.clientWidth / imgWidth.value,
     chartRef.value.clientHeight / imgHeight.value
   );
@@ -192,7 +192,7 @@ function bindEvents() {
   zr.on('globalout', () => { dragging = false; });
   zr.on('mousewheel', e => {
     e.event?.preventDefault();
-    const mz = minZoom();
+    const mz = fitZoom();
     const delta = e.wheelDelta > 0 ? 1.15 : 0.85;
     const nz = Math.max(mz, Math.min(zoom * delta, 30));
     const px = (e.offsetX - panX) / zoom;

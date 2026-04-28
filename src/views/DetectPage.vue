@@ -231,9 +231,14 @@ async function confirmAndDetect() {
 
     const base64Data = outCanvas.toDataURL('image/png');
 
+    // Extract original filename from path
+    const parts = imagePath.value.split(/[/\\]/);
+    const originalFileName = parts[parts.length - 1] || "image.png";
+
     const result = await invoke("detect_rgb_data", {
       base64Data,
       modelNames: selectedModels.value,
+      fileName: originalFileName,
     });
 
     // Pinia unwraps refs — assign directly, no .value needed

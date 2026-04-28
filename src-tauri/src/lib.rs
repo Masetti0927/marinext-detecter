@@ -42,6 +42,7 @@ pub fn run() {
             commands::detect_multichannel,
             commands::list_models,
             commands::get_image_base64,
+            commands::write_file_base64,
             commands::get_history_list,
             commands::get_history_detail,
             commands::delete_history,

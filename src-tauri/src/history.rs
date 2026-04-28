@@ -109,6 +109,8 @@ impl HistoryStore {
         search: &str,
         filter_class: Option<u8>,
         sort_desc: bool,
+        date_from: Option<String>,
+        date_to: Option<String>,
     ) -> Vec<HistoryItem> {
         let mut items = self.load_all();
 
@@ -119,6 +121,13 @@ impl HistoryStore {
 
         if let Some(cls) = filter_class {
             items.retain(|item| item.primary_class == Some(cls));
+        }
+
+        if let Some(ref from) = date_from {
+            items.retain(|item| item.date.as_str() >= from.as_str());
+        }
+        if let Some(ref to) = date_to {
+            items.retain(|item| item.date.as_str() <= to.as_str());
         }
 
         items.sort_by(|a, b| {
