@@ -13,10 +13,13 @@
         </div>
         <select v-model="history.filterType" @change="history.refreshWithFilters()" class="filter-select">
           <option value="all">All Classes</option>
-          <option v-for="(clsId, clsName) in classOptions" :key="clsId" :value="clsId">
-            {{ clsName }}
+          <option v-for="(label, clsId) in classOptions" :key="clsId" :value="clsId">
+            {{ label }}
           </option>
         </select>
+        <input type="date" v-model="history.dateFrom" @change="history.refreshWithFilters()" class="date-input" title="From date" />
+        <input type="date" v-model="history.dateTo" @change="history.refreshWithFilters()" class="date-input" title="To date" />
+        <button v-if="history.dateFrom || history.dateTo" class="clear-date-btn" @click="history.clearDateFilter(); history.refreshWithFilters()">Clear dates</button>
         <button class="sort-btn" @click="history.toggleSort(); history.refreshWithFilters()">
           {{ history.sortDesc ? 'Newest first' : 'Oldest first' }}
         </button>
@@ -24,29 +27,38 @@
       </div>
     </div>
 
-    <div class="history-list" v-if="history.filteredItems.length > 0">
+    <div class="history-list" v-if="history.groupedItems.length > 0">
       <div
-        v-for="item in history.filteredItems"
-        :key="item.id"
-        class="history-card"
-        :class="{ active: history.activeId === item.id }"
-        @click="loadItem(item)"
+        v-for="[fileName, entries] in history.groupedItems"
+        :key="fileName"
+        class="history-group"
       >
-        <div class="card-thumb">
-          <img v-if="thumbCache[item.original_path]" :src="thumbCache[item.original_path]" alt="thumb" />
-          <div class="thumb-placeholder" v-else>Img</div>
+        <div class="group-header">
+          <span class="group-name" :title="fileName">{{ fileName }}</span>
+          <span class="group-count">{{ entries.length }} {{ entries.length === 1 ? 'result' : 'results' }}</span>
         </div>
-        <div class="card-info">
-          <div class="file-name">{{ item.file_name }}</div>
-          <div class="file-meta">
-            <span>{{ item.date }}</span>
-            <span class="tag" :style="{ backgroundColor: getClassColor(item) }">
-              {{ getPrimaryName(item) }}
-            </span>
-            <span class="mode-tag">{{ item.mode }}</span>
+        <div
+          v-for="item in entries"
+          :key="item.id"
+          class="history-card"
+          :class="{ active: history.activeId === item.id }"
+          @click="loadItem(item)"
+        >
+          <div class="card-thumb">
+            <img v-if="thumbCache[item.original_path]" :src="thumbCache[item.original_path]" alt="thumb" />
+            <div class="thumb-placeholder" v-else>Img</div>
           </div>
+          <div class="card-info">
+            <div class="file-name">{{ item.date }}</div>
+            <div class="file-meta">
+              <span class="tag" :style="{ backgroundColor: getClassColor(item) }">
+                {{ getPrimaryName(item) }}
+              </span>
+              <span class="mode-tag">{{ item.mode }}</span>
+            </div>
+          </div>
+          <button class="delete-btn" @click.stop="handleDelete(item.id)" title="Delete">x</button>
         </div>
-        <button class="delete-btn" @click.stop="handleDelete(item.id)" title="Delete">x</button>
       </div>
     </div>
 
@@ -103,14 +115,13 @@ watch(() => history.items, (items) => {
 async function loadThumbnails(items) {
   loadingThumbs.value = true;
   const toLoad = items.filter(item => item.original_path && !thumbCache.value[item.original_path]);
-  // Load in batches of 3 to avoid overwhelming the backend
   for (let i = 0; i < toLoad.length; i += 3) {
     const batch = toLoad.slice(i, i + 3);
     await Promise.all(batch.map(async (item) => {
       try {
         const b64 = await invoke("get_image_base64", { path: item.original_path });
         thumbCache.value[item.original_path] = b64;
-      } catch { /* ignore failed thumbnails */ }
+      } catch { /* ignore */ }
     }));
   }
   loadingThumbs.value = false;
@@ -170,8 +181,9 @@ async function handleDelete(id) {
 .history-header h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 16px; }
 .filter-bar {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 .search-box input {
   padding: 8px 12px;
@@ -179,7 +191,7 @@ async function handleDelete(id) {
   border-radius: 8px;
   font-size: 13px;
   outline: none;
-  width: 220px;
+  width: 200px;
 }
 .search-box input:focus { border-color: #409eff; }
 .filter-select {
@@ -189,6 +201,24 @@ async function handleDelete(id) {
   font-size: 13px;
   outline: none;
 }
+.date-input {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  width: 130px;
+}
+.date-input:focus { border-color: #409eff; }
+.clear-date-btn {
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 12px;
+}
+.clear-date-btn:hover { color: #e74c3c; }
 .sort-btn, .refresh-btn {
   padding: 8px 16px;
   border: 1px solid #ddd;
@@ -204,27 +234,59 @@ async function handleDelete(id) {
   padding: 16px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
 }
+
+.history-group {
+  margin-bottom: 16px;
+}
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 8px;
+}
+.group-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+.group-count {
+  font-size: 12px;
+  color: #999;
+  background: #f0f2f5;
+  padding: 2px 10px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
 .history-card {
   display: flex;
-  gap: 16px;
-  padding: 14px;
+  gap: 12px;
+  padding: 10px 14px;
   background: #fff;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid #eee;
   cursor: pointer;
   transition: all 0.15s ease;
   align-items: center;
+  margin-bottom: 4px;
+  margin-left: 8px;
 }
 .history-card:hover {
   border-color: #409eff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   transform: translateY(-1px);
 }
 .history-card.active { border-color: #409eff; background: #ecf5ff; }
 .card-thumb {
-  width: 72px; height: 72px;
+  width: 56px; height: 56px;
   border-radius: 6px; overflow: hidden;
   flex-shrink: 0; background: #e0e0e0;
 }
@@ -238,12 +300,12 @@ async function handleDelete(id) {
 }
 .card-info { flex: 1; min-width: 0; }
 .file-name {
-  font-size: 14px; font-weight: 600; color: #333;
+  font-size: 13px; font-weight: 600; color: #333;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .file-meta {
-  display: flex; gap: 10px; align-items: center; font-size: 12px; color: #999;
+  display: flex; gap: 8px; align-items: center; font-size: 12px; color: #999;
 }
 .tag {
   color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px;

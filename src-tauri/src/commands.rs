@@ -113,12 +113,12 @@ pub async fn detect_rgb_data(
     state: State<'_, AppState>,
     base64_data: String,
     model_names: Vec<String>,
+    file_name: String,
 ) -> Result<DetectionResult, String> {
     let run_id = uuid::Uuid::new_v4().to_string();
     let output_dir = state.output_base.join(&run_id);
     std::fs::create_dir_all(&output_dir).map_err(|e| e.to_string())?;
 
-    // Decode base64 data URL to PNG bytes and save to temp file
     let image_path = output_dir.join("input.png");
     let image_path_str = image_path.to_string_lossy().to_string();
     crate::inference::save_base64_image(&base64_data, &image_path_str)?;
@@ -143,8 +143,6 @@ pub async fn detect_rgb_data(
         "rgb",
     )?;
 
-    let file_name = "cropped_image.png".to_string();
-
     state.history.add(&result, &file_name);
 
     Ok(result)
@@ -168,13 +166,25 @@ pub async fn get_image_base64(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub async fn write_file_base64(path: String, base64_data: String) -> Result<(), String> {
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
+    let bytes = STANDARD.decode(&base64_data)
+        .map_err(|e| format!("Failed to decode: {}", e))?;
+    std::fs::write(&path, &bytes)
+        .map_err(|e| format!("Failed to write file: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn get_history_list(
     state: State<'_, AppState>,
     query: String,
     filter_type: Option<u8>,
     sort_desc: bool,
+    date_from: Option<String>,
+    date_to: Option<String>,
 ) -> Result<Vec<HistoryItem>, String> {
-    Ok(state.history.query(&query, filter_type, sort_desc))
+    Ok(state.history.query(&query, filter_type, sort_desc, date_from, date_to))
 }
 
 #[tauri::command]
