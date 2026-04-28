@@ -359,14 +359,6 @@ onBeforeUnmount(() => {
         </button>
       </template>
 
-      <div v-if="detection.isLoading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Running inference...</p>
-      </div>
-
-      <div v-if="detection.error" class="error-state">
-        <p>{{ detection.error }}</p>
-      </div>
     </div>
   </div>
 </template>
@@ -505,21 +497,4 @@ h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 20px; }
 }
 .run-btn:hover:not(:disabled) { background: #337ecc; }
 .run-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.loading-state {
-  margin-top: 20px; display: flex; flex-direction: column;
-  align-items: center; gap: 10px;
-}
-.spinner {
-  width: 28px; height: 28px;
-  border: 3px solid #e0e0e0; border-top-color: #409eff;
-  border-radius: 50%; animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.error-state {
-  margin-top: 16px; padding: 12px;
-  background: #fff2f0; border: 1px solid #ffccc7;
-  border-radius: 8px; color: #cf1322; font-size: 13px;
-}
 </style>
