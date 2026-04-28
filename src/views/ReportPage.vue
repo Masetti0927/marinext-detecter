@@ -55,6 +55,7 @@ import { ref, computed, onMounted, onUnmounted, markRaw, nextTick } from "vue";
 import * as echarts from "echarts";
 import { useRouter } from "vue-router";
 import { useDetectionStore } from "../stores/detection";
+import { COLOR_MAP } from "../composables/useMaskProcessing";
 
 const router = useRouter();
 const detection = useDetectionStore();
@@ -62,12 +63,6 @@ const detection = useDetectionStore();
 const reportRef = ref(null);
 const miniChartRef = ref(null);
 let miniChart = null;
-
-const colorMap = [
-  '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
-  '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4',
-  '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000'
-];
 
 const fileName = computed(() => {
   const parts = detection.originalPath?.split(/[/\\]/) || [];
@@ -105,7 +100,10 @@ onMounted(() => {
         yAxis: { type: 'value', name: '%' },
         series: [{
           type: 'bar',
-          data: names.map((n, i) => ({ value: percentages[i], itemStyle: { color: colorMap[i % colorMap.length] } }))
+          data: names.map((n, i) => ({
+            value: percentages[i],
+            itemStyle: { color: COLOR_MAP[stats[n]?.class_id] || '#999' }
+          }))
         }],
         grid: { bottom: 100 }
       });

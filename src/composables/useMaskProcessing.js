@@ -1,10 +1,10 @@
-const COLOR_MAP = {
+export const COLOR_MAP = {
   1: '#e6194b', 2: '#3cb44b', 3: '#ffe119', 4: '#9A6324', 5: '#f58231',
   6: '#911eb4', 7: '#000080', 8: '#ffd700', 9: '#800080', 10: '#bdb76b',
   11: '#00ced1', 12: '#ffe4c4', 13: '#696969', 14: '#ff69b4', 15: '#ffff00'
 };
 
-const CLASS_NAMES = {
+export const CLASS_NAMES = {
   1: 'Marine Debris', 2: 'Dense Sargassum', 3: 'Sparse Floating Algae',
   4: 'Natural Organic Material', 5: 'Ship', 6: 'Oil Spill',
   7: 'Marine Water', 8: 'Sediment-Laden Water', 9: 'Foam',

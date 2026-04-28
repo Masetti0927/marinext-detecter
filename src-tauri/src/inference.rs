@@ -136,6 +136,21 @@ pub fn run_inference(
     })
 }
 
+pub fn save_base64_image(data_url: &str, output_path: &str) -> Result<(), String> {
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
+    // Strip data URL prefix: "data:image/png;base64,"
+    let base64_data = if let Some(comma_pos) = data_url.find(',') {
+        &data_url[comma_pos + 1..]
+    } else {
+        data_url
+    };
+    let bytes = STANDARD.decode(base64_data)
+        .map_err(|e| format!("Failed to decode base64: {}", e))?;
+    std::fs::write(output_path, &bytes)
+        .map_err(|e| format!("Failed to write image file: {}", e))?;
+    Ok(())
+}
+
 fn image_to_base64(path: &str) -> Result<String, String> {
     use base64::{Engine as _, engine::general_purpose::STANDARD};
     let bytes = std::fs::read(path)

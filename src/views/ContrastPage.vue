@@ -17,7 +17,8 @@ const imgHeight = ref(0);
 const totalPixels = ref(1);
 const pixelCounts = ref({});
 const activeClasses = computed(() => Object.keys(pixelCounts.value).map(Number));
-const maskOpacity = ref(0.6);
+const maskOpacity = ref(0.4);
+const maskVisible = ref(true);
 const maskThreshold = ref(0.1);
 const hoveredClass = ref(null);
 const lockedClasses = ref(new Set());
@@ -38,6 +39,13 @@ const filteredLegend = computed(() => {
     .sort((a, b) => (pixelCounts.value[b] || 0) - (pixelCounts.value[a] || 0));
 });
 
+const opacitySliderBg = computed(() =>
+  `linear-gradient(to right, #b3d8ff 0%, #b3d8ff ${maskOpacity.value * 100}%, #e0e0e0 ${maskOpacity.value * 100}%, #e0e0e0 100%)`
+);
+const thresholdSliderBg = computed(() =>
+  `linear-gradient(to right, #b3d8ff 0%, #b3d8ff ${(maskThreshold.value / 5) * 100}%, #e0e0e0 ${(maskThreshold.value / 5) * 100}%, #e0e0e0 100%)`
+);
+
 // --- lifecycle ---
 onMounted(async () => {
   if (detection.currentId) await init();
@@ -48,7 +56,7 @@ onUnmounted(() => {
   chart?.dispose();
 });
 
-watch([maskOpacity, maskThreshold], () => {
+watch([maskOpacity, maskThreshold, maskVisible], () => {
   refreshMainOverlay();
   applyLayerVisibility();
 });
@@ -148,7 +156,7 @@ function applyLayerVisibility() {
   if (!chart) return;
   const active = new Set(lockedClasses.value);
   if (hoveredClass.value) active.add(hoveredClass.value);
-  const showMain = active.size === 0;
+  const showMain = maskVisible.value && active.size === 0;
 
   const updates = [
     { id: 'mask-main', style: { image: overlayCache['main'], opacity: showMain ? maskOpacity.value : 0 } }
@@ -236,17 +244,25 @@ function loadImage(src) {
     <aside class="side-panel">
       <section class="panel-block">
         <h4>Controls</h4>
+        <div class="toggle-row">
+          <span>Show Mask</span>
+          <label class="toggle-switch">
+            <input type="checkbox" v-model="maskVisible" />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+
         <label class="slider-row">
           <span>Opacity</span>
           <span class="slider-val">{{ Math.round(maskOpacity * 100) }}%</span>
         </label>
-        <input type="range" min="0" max="1" step="0.05" v-model="maskOpacity" class="slider" />
+        <input type="range" min="0" max="1" step="0.05" v-model="maskOpacity" class="slider" :style="{ background: opacitySliderBg }" />
 
         <label class="slider-row">
           <span>Threshold</span>
           <span class="slider-val">{{ maskThreshold }}%</span>
         </label>
-        <input type="range" min="0" max="5" step="0.1" v-model="maskThreshold" class="slider" />
+        <input type="range" min="0" max="5" step="0.1" v-model="maskThreshold" class="slider" :style="{ background: thresholdSliderBg }" />
         <p class="hint">Classes below threshold are hidden</p>
       </section>
 
@@ -401,6 +417,46 @@ function loadImage(src) {
 }
 
 .hint { font-size: 11px; color: #999; margin-top: 4px; }
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 16px;
+}
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+.toggle-switch input { display: none; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: #ccc;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.toggle-track::before {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-switch input:checked + .toggle-track {
+  background: #409eff;
+}
+.toggle-switch input:checked + .toggle-track::before {
+  transform: translateX(20px);
+}
 
 .legend-block { flex: 1; }
 .legend-list { display: flex; flex-direction: column; gap: 6px; }

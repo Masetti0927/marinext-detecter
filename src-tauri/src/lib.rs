@@ -38,6 +38,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::detect_rgb,
+            commands::detect_rgb_data,
             commands::detect_multichannel,
             commands::list_models,
             commands::get_image_base64,
