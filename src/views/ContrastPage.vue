@@ -328,7 +328,7 @@ function loadImage(src) {
 .canvas-panel {
   flex: 1;
   position: relative;
-  background: #000;
+  background: #f0f2f5;
   overflow: hidden;
 }
 .hint-bar {
