@@ -13,8 +13,8 @@
         </div>
         <select v-model="history.filterType" @change="history.refreshWithFilters()" class="filter-select">
           <option value="all">All Classes</option>
-          <option v-for="(label, clsId) in classOptions" :key="clsId" :value="clsId">
-            {{ label }}
+          <option v-for="(clsId, clsName) in classOptions" :key="clsId" :value="clsId">
+            {{ clsName }}
           </option>
         </select>
         <input type="date" v-model="history.dateFrom" @change="history.refreshWithFilters()" class="date-input" title="From date" />
@@ -23,6 +23,7 @@
         <button class="sort-btn" @click="history.toggleSort(); history.refreshWithFilters()">
           {{ history.sortDesc ? 'Newest first' : 'Oldest first' }}
         </button>
+        <button class="reset-btn" @click="resetAllFilters">Reset Filters</button>
         <button class="refresh-btn" @click="history.loadHistory()">Refresh</button>
       </div>
     </div>
@@ -127,6 +128,14 @@ async function loadThumbnails(items) {
   loadingThumbs.value = false;
 }
 
+function resetAllFilters() {
+  history.searchQuery = "";
+  history.filterType = "all";
+  history.sortDesc = true;
+  history.clearDateFilter();
+  history.refreshWithFilters();
+}
+
 function debouncedFilter() {
   if (filterTimeout) clearTimeout(filterTimeout);
   filterTimeout = setTimeout(() => history.refreshWithFilters(), 300);
@@ -219,7 +228,7 @@ async function handleDelete(id) {
   font-size: 12px;
 }
 .clear-date-btn:hover { color: #e74c3c; }
-.sort-btn, .refresh-btn {
+.sort-btn, .reset-btn, .refresh-btn {
   padding: 8px 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -227,7 +236,9 @@ async function handleDelete(id) {
   cursor: pointer;
   font-size: 13px;
 }
-.sort-btn:hover, .refresh-btn:hover { background: #f0f2f5; }
+.sort-btn:hover, .reset-btn:hover, .refresh-btn:hover { background: #f0f2f5; }
+.reset-btn { color: #e67e22; border-color: #f0c78a; }
+.reset-btn:hover { background: #fff8f0; }
 .history-list {
   flex: 1;
   overflow-y: auto;
