@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useHistoryStore } from "../stores/history";
 import { useDetectionStore } from "../stores/detection";
@@ -70,6 +70,7 @@ const detection = useDetectionStore();
 
 let filterTimeout = null;
 const thumbCache = ref({});
+const loadingThumbs = ref(false);
 
 const classOptions = {
   'Marine Debris': 1, 'Dense Sargassum': 2, 'Sparse Floating Algae': 3,
@@ -94,6 +95,26 @@ const classColorMap = {
 onMounted(() => {
   history.loadHistory();
 });
+
+watch(() => history.items, (items) => {
+  if (items && items.length) loadThumbnails(items);
+}, { immediate: true });
+
+async function loadThumbnails(items) {
+  loadingThumbs.value = true;
+  const toLoad = items.filter(item => item.original_path && !thumbCache.value[item.original_path]);
+  // Load in batches of 3 to avoid overwhelming the backend
+  for (let i = 0; i < toLoad.length; i += 3) {
+    const batch = toLoad.slice(i, i + 3);
+    await Promise.all(batch.map(async (item) => {
+      try {
+        const b64 = await invoke("get_image_base64", { path: item.original_path });
+        thumbCache.value[item.original_path] = b64;
+      } catch { /* ignore failed thumbnails */ }
+    }));
+  }
+  loadingThumbs.value = false;
+}
 
 function debouncedFilter() {
   if (filterTimeout) clearTimeout(filterTimeout);
