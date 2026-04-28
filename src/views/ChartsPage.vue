@@ -31,6 +31,7 @@
 import { ref, onMounted, onUnmounted, markRaw, nextTick } from "vue";
 import * as echarts from "echarts";
 import { useDetectionStore } from "../stores/detection";
+import { COLOR_MAP } from "../composables/useMaskProcessing";
 
 const detection = useDetectionStore();
 
@@ -38,12 +39,6 @@ const pieChartRef = ref(null);
 const barChartRef = ref(null);
 const radarChartRef = ref(null);
 let pieInstance = null, barInstance = null, radarInstance = null;
-
-const colorMap = [
-  '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
-  '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4',
-  '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000'
-];
 
 onMounted(() => {
   nextTick(() => {
@@ -63,6 +58,11 @@ function initCharts() {
   const percentages = names.map(n => stats[n].percentage);
   const pixelCounts = names.map(n => stats[n].pixel_count);
 
+  function getColor(className) {
+    const clsId = stats[className]?.class_id;
+    return COLOR_MAP[clsId] || '#999';
+  }
+
   // Pie chart
   pieInstance = markRaw(echarts.init(pieChartRef.value));
   pieInstance.setOption({
@@ -70,8 +70,7 @@ function initCharts() {
     series: [{
       type: 'pie',
       radius: ['40%', '75%'],
-      data: names.map((n, i) => ({ name: n, value: percentages[i] })),
-      itemStyle: { color: params => colorMap[params.dataIndex % colorMap.length] },
+      data: names.map((n, i) => ({ name: n, value: percentages[i], itemStyle: { color: getColor(n) } })),
       label: { formatter: '{b}\n{d}%', fontSize: 10 }
     }]
   });
@@ -84,7 +83,7 @@ function initCharts() {
     yAxis: { type: 'value', name: 'Pixels' },
     series: [{
       type: 'bar',
-      data: names.map((n, i) => ({ value: pixelCounts[i], itemStyle: { color: colorMap[i % colorMap.length] } }))
+      data: names.map((n, i) => ({ value: pixelCounts[i], itemStyle: { color: getColor(n) } }))
     }],
     grid: { bottom: 120 }
   });

@@ -109,6 +109,48 @@ pub async fn list_models(
 }
 
 #[tauri::command]
+pub async fn detect_rgb_data(
+    state: State<'_, AppState>,
+    base64_data: String,
+    model_names: Vec<String>,
+) -> Result<DetectionResult, String> {
+    let run_id = uuid::Uuid::new_v4().to_string();
+    let output_dir = state.output_base.join(&run_id);
+    std::fs::create_dir_all(&output_dir).map_err(|e| e.to_string())?;
+
+    // Decode base64 data URL to PNG bytes and save to temp file
+    let image_path = output_dir.join("input.png");
+    let image_path_str = image_path.to_string_lossy().to_string();
+    crate::inference::save_base64_image(&base64_data, &image_path_str)?;
+
+    let model_paths: Vec<String> = model_names
+        .iter()
+        .map(|name| {
+            state.model_dir
+                .join("rgb")
+                .join(format!("{}.onnx", name))
+                .to_string_lossy()
+                .to_string()
+        })
+        .collect();
+
+    let result = crate::inference::run_inference(
+        &image_path_str,
+        output_dir.to_str().unwrap(),
+        &state.python_bin,
+        &state.python_dir,
+        &model_paths,
+        "rgb",
+    )?;
+
+    let file_name = "cropped_image.png".to_string();
+
+    state.history.add(&result, &file_name);
+
+    Ok(result)
+}
+
+#[tauri::command]
 pub async fn get_image_base64(path: String) -> Result<String, String> {
     use base64::{Engine as _, engine::general_purpose::STANDARD};
     let bytes = std::fs::read(&path)
