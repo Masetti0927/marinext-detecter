@@ -16,6 +16,7 @@
     <div v-else class="report-body" ref="reportRef">
       <!-- Pollution Index card -->
       <div class="report-section pollution-card" :class="pollutionLevelClass">
+        <p class="methodology-note">Heuristic score based on weighted class contributions. This is not an official regulatory index — see note below.</p>
         <div class="pollution-main">
           <div class="pollution-score-wrap">
             <div class="pollution-score">{{ pollutionIndex }}</div>
@@ -35,6 +36,18 @@
             <span>Clean</span><span>Light</span><span>Moderate</span><span>Heavy</span><span>Severe</span>
           </div>
         </div>
+        <details class="methodology-details">
+          <summary>Methodology</summary>
+          <div class="methodology-content">
+            <p>This score is a <strong>heuristic weighted index</strong> — not an official regulatory metric. No universal standard exists for mapping satellite semantic segmentation labels to a single pollution score. The approach is inspired by:</p>
+            <ul>
+              <li><strong>EU Marine Strategy Framework Directive (MSFD)</strong> — Descriptors 8, 9, 10 for contaminants, eutrophication, and marine litter</li>
+              <li><strong>NOAA Marine Debris Program</strong> — standardized debris monitoring protocols</li>
+              <li><strong>Water Quality Index (CCME WQI)</strong> — weighted aggregation methodology</li>
+            </ul>
+            <p>Each class is assigned a pollution weight (0-10) based on its association with anthropogenic activity or ecosystem stress. The final index = weighted sum of pixel percentages, normalized to 0-10.</p>
+          </div>
+        </details>
       </div>
 
       <!-- Summary -->
@@ -157,16 +170,13 @@ const dominantClassName = computed(() => {
 const pollutionIndex = computed(() => {
   const stats = detection.stats;
   let weightedSum = 0;
-  let totalWeight = 0;
   for (const [name, stat] of Object.entries(stats)) {
     const w = POLLUTION_WEIGHTS[stat.class_id] || 0;
     weightedSum += stat.percentage * w;
-    totalWeight += w;
   }
-  if (totalWeight === 0) return 0;
-  // Scale from [0, 10] where 10 = all pixels are weight-10 class
-  // Normalize: divide by 10 * 15 / 10 = simplify
-  const raw = weightedSum / 10;
+  // percentages sum to 100, weights are 0-10, so weightedSum in [0, 1000]
+  // divide by 100 to normalize to [0, 10]
+  const raw = weightedSum / 100;
   return Math.round(raw * 10) / 10;
 });
 
@@ -416,6 +426,52 @@ onUnmounted(() => { miniChart?.dispose(); });
   margin-top: 4px;
   font-size: 10px;
   color: #bbb;
+}
+
+.methodology-note {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0 0 12px;
+  font-style: italic;
+}
+
+.methodology-details {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.methodology-details summary {
+  cursor: pointer;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.methodology-details summary:hover {
+  color: #5b8def;
+}
+
+.methodology-content {
+  margin-top: 8px;
+  padding: 12px;
+  background: #f8f9fb;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.methodology-content p {
+  margin-bottom: 8px;
+}
+
+.methodology-content ul {
+  margin: 8px 0;
+  padding-left: 18px;
+}
+
+.methodology-content li {
+  margin-bottom: 4px;
 }
 
 .info-table { width: 100%; max-width: 400px; }
