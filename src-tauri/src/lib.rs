@@ -16,6 +16,9 @@ pub fn run() {
                 .unwrap_or_else(|_| PathBuf::from("."));
 
             // Embedded Python runtime (python-build-standalone)
+            #[cfg(target_os = "windows")]
+            let python_bin = resource_dir.join("python-runtime/python.exe");
+            #[cfg(not(target_os = "windows"))]
             let python_bin = resource_dir.join("python-runtime/bin/python3");
             // Python scripts
             let python_dir = resource_dir.join("python");
