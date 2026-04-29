@@ -478,6 +478,7 @@ onUnmounted(() => { miniChart?.dispose(); });
 .info-table td { padding: 6px 0; font-size: 14px; }
 .info-table .label { color: #888; width: 140px; }
 .level-badge {
+  display: inline-block;
   padding: 2px 10px;
   border-radius: 10px;
   font-size: 12px;
