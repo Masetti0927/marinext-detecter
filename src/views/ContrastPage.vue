@@ -300,7 +300,7 @@ function loadImage(src) {
 .contrast-root {
   display: flex;
   height: 100%;
-  background: #f0f2f5;
+  background: #f3f4f6;
   overflow: hidden;
 }
 
@@ -318,12 +318,12 @@ function loadImage(src) {
 
 .btn-primary {
   padding: 10px 24px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   border: none;
-  background: #409eff;
+  background: #5b8def;
   color: #fff;
   text-decoration: none;
   display: inline-block;
@@ -332,7 +332,7 @@ function loadImage(src) {
 .canvas-panel {
   flex: 1;
   position: relative;
-  background: #f0f2f5;
+  background: #f3f4f6;
   overflow: hidden;
 }
 .hint-bar {
@@ -340,11 +340,12 @@ function loadImage(src) {
   top: 12px; left: 12px;
   z-index: 10;
   display: flex; gap: 16px;
-  color: rgba(255,255,255,0.5);
+  color: #6b7280;
   font-size: 12px;
-  background: rgba(0,0,0,0.45);
+  background: rgba(255,255,255,0.85);
+  border: 1px solid #e5e7eb;
   padding: 4px 12px;
-  border-radius: 4px;
+  border-radius: 8px;
   pointer-events: none;
 }
 .echarts-host {
@@ -357,7 +358,7 @@ function loadImage(src) {
 .side-panel {
   width: 300px;
   background: #fff;
-  border-left: 1px solid #e0e0e0;
+  border-left: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -368,10 +369,10 @@ function loadImage(src) {
 }
 .panel-block h4 {
   font-size: 14px;
-  color: #1a1a2e;
+  color: #374151;
   margin-bottom: 12px;
   padding-bottom: 6px;
-  border-bottom: 2px solid #f0f2f5;
+  border-bottom: 2px solid #f3f4f6;
 }
 
 /* Unified slider styles */
@@ -472,7 +473,7 @@ function loadImage(src) {
   padding: 8px 10px;
   background: #f8f9fa;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s;
   user-select: none;

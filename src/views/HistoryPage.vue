@@ -180,14 +180,14 @@ async function handleDelete(id) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: #f3f4f6;
 }
 .history-header {
   padding: 24px 24px 16px;
   background: #fff;
   border-bottom: 1px solid #e0e0e0;
 }
-.history-header h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 16px; }
+.history-header h2 { font-size: 22px; color: #374151; margin-bottom: 16px; }
 .filter-bar {
   display: flex;
   gap: 8px;
@@ -202,7 +202,7 @@ async function handleDelete(id) {
   outline: none;
   width: 200px;
 }
-.search-box input:focus { border-color: #409eff; }
+.search-box input:focus { border-color: #5b8def; }
 .filter-select {
   padding: 8px 12px;
   border: 1px solid #ddd;
@@ -218,7 +218,7 @@ async function handleDelete(id) {
   outline: none;
   width: 130px;
 }
-.date-input:focus { border-color: #409eff; }
+.date-input:focus { border-color: #5b8def; }
 .clear-date-btn {
   padding: 6px 10px;
   border: none;
@@ -262,7 +262,7 @@ async function handleDelete(id) {
 .group-name {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #374151;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -291,11 +291,11 @@ async function handleDelete(id) {
   margin-left: 8px;
 }
 .history-card:hover {
-  border-color: #409eff;
+  border-color: #5b8def;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   transform: translateY(-1px);
 }
-.history-card.active { border-color: #409eff; background: #ecf5ff; }
+.history-card.active { border-color: #5b8def; background: #e8f0fe; }
 .card-thumb {
   width: 56px; height: 56px;
   border-radius: 6px; overflow: hidden;
@@ -340,5 +340,5 @@ async function handleDelete(id) {
   font-weight: 500; cursor: pointer; border: none; text-decoration: none;
   display: inline-block;
 }
-.btn-primary { background: #409eff; color: #fff; }
+.btn-primary { background: #5b8def; color: #fff; }
 </style>

@@ -99,7 +99,7 @@ function initCharts() {
     series: [{
       type: 'radar',
       data: [{ value: percentages, name: 'Class %', areaStyle: { opacity: 0.3 } }],
-      itemStyle: { color: '#409eff' }
+      itemStyle: { color: '#5b8def' }
     }]
   });
 }
@@ -110,7 +110,7 @@ function initCharts() {
   height: 100%;
   overflow-y: auto;
   padding: 24px;
-  background: #f5f7fa;
+  background: #f3f4f6;
 }
 .charts-header {
   display: flex;
@@ -118,8 +118,8 @@ function initCharts() {
   align-items: center;
   margin-bottom: 24px;
 }
-.charts-header h2 { font-size: 22px; color: #1a1a2e; }
-.back-link { color: #409eff; text-decoration: none; font-size: 14px; }
+.charts-header h2 { font-size: 22px; color: #374151; }
+.back-link { color: #5b8def; text-decoration: none; font-size: 14px; }
 .empty-state {
   text-align: center; padding: 80px 0; color: #888;
   display: flex; flex-direction: column; align-items: center; gap: 16px;
@@ -128,7 +128,7 @@ function initCharts() {
   padding: 10px 24px; border-radius: 8px; font-size: 14px;
   font-weight: 500; cursor: pointer; border: none; text-decoration: none;
 }
-.btn-primary { background: #409eff; color: #fff; }
+.btn-primary { background: #5b8def; color: #fff; }
 .charts-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
