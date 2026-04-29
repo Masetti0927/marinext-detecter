@@ -366,13 +366,13 @@ onBeforeUnmount(() => {
 <style scoped>
 .detect-page {
   display: flex; align-items: center; justify-content: center;
-  height: 100%; padding: 40px; background: #f5f7fa;
+  height: 100%; padding: 40px; background: #f3f4f6;
   overflow-y: auto;
 }
 .detect-container {
   max-width: 560px; width: 100%;
 }
-h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 20px; }
+h2 { font-size: 22px; color: #374151; margin-bottom: 20px; }
 
 .mode-tabs {
   display: flex; gap: 0; margin-bottom: 24px;
@@ -384,19 +384,19 @@ h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 20px; }
   transition: all 0.15s;
 }
 .mode-tabs button.active {
-  background: #409eff; color: #fff;
+  background: #5b8def; color: #fff;
 }
 
 .section { margin-bottom: 24px; }
 .section h3 { font-size: 15px; color: #333; margin-bottom: 8px; }
 .badge {
-  font-size: 12px; color: #409eff;
+  font-size: 12px; color: #5b8def;
   background: rgba(64,158,255,0.1);
   padding: 2px 8px; border-radius: 10px; margin-left: 8px;
 }
 .model-actions { display: flex; gap: 12px; margin-bottom: 8px; }
 .link-btn {
-  background: none; border: none; color: #409eff;
+  background: none; border: none; color: #5b8def;
   font-size: 12px; cursor: pointer;
 }
 .model-list { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -408,17 +408,17 @@ h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 20px; }
   transition: all 0.15s;
   background: #fff;
 }
-.model-chip.checked { border-color: #409eff; background: #e6f7ff; }
+.model-chip.checked { border-color: #5b8def; background: #e8f0fe; }
 .model-chip input { display: none; }
 
 .pick-btn {
   width: 100%; padding: 14px;
-  background: #fff; color: #409eff;
-  border: 2px dashed #409eff; border-radius: 10px;
+  background: #fff; color: #5b8def;
+  border: 2px dashed #5b8def; border-radius: 10px;
   font-size: 16px; font-weight: 600;
   cursor: pointer; transition: all 0.15s;
 }
-.pick-btn:hover { background: #ecf5ff; }
+.pick-btn:hover { background: #e8f0fe; }
 
 /* --- crop editor --- */
 .crop-editor {
@@ -438,7 +438,7 @@ h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 20px; }
   align-items: center; justify-content: center;
   transition: all 0.15s;
 }
-.crop-toolbar button:hover { border-color: #409eff; color: #409eff; }
+.crop-toolbar button:hover { border-color: #5b8def; color: #5b8def; }
 .crop-toolbar .zoom-label {
   font-size: 12px; color: #666;
   min-width: 40px; text-align: center;
@@ -469,7 +469,7 @@ h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 20px; }
 
 .crop-box {
   position: absolute;
-  border: 2px solid #409eff;
+  border: 2px solid #5b8def;
   background: rgba(64,158,255,0.08);
   cursor: move;
   box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
@@ -481,7 +481,7 @@ h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 20px; }
   bottom: -7px;
   width: 14px;
   height: 14px;
-  background: #409eff;
+  background: #5b8def;
   border-radius: 50%;
   cursor: nwse-resize;
 }
@@ -490,7 +490,7 @@ h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 20px; }
 
 .run-btn {
   width: 100%; padding: 14px;
-  background: #409eff; color: #fff;
+  background: #5b8def; color: #fff;
   border: none; border-radius: 10px;
   font-size: 16px; font-weight: 600;
   cursor: pointer; transition: all 0.15s;

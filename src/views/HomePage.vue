@@ -56,7 +56,7 @@ async function goToHistory() {
   justify-content: center;
   height: 100%;
   padding: 48px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #eef1f5 100%);
 }
 
 .hero {
@@ -90,7 +90,7 @@ async function goToHistory() {
   align-items: center;
   padding: 32px 24px;
   background: #fff;
-  border: 2px solid #e0e0e0;
+  border: 1.5px solid #e5e7eb;
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;

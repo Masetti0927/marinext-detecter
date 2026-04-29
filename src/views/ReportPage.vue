@@ -212,7 +212,7 @@ function getBarColor(stat) {
   const w = POLLUTION_WEIGHTS[stat.class_id] || 0;
   if (w >= 8) return '#e74c3c';
   if (w >= 5) return '#f39c12';
-  return '#409eff';
+  return '#5b8def';
 }
 
 function goToCharts() { router.push('/charts'); }
@@ -314,7 +314,7 @@ onUnmounted(() => { miniChart?.dispose(); });
   height: 100%;
   overflow-y: auto;
   padding: 24px;
-  background: #f5f7fa;
+  background: #f3f4f6;
 }
 .report-header {
   display: flex;
@@ -322,13 +322,13 @@ onUnmounted(() => { miniChart?.dispose(); });
   align-items: center;
   margin-bottom: 24px;
 }
-.report-header h2 { font-size: 22px; color: #1a1a2e; }
+.report-header h2 { font-size: 22px; color: #374151; }
 .header-actions { display: flex; gap: 12px; }
 .btn {
   padding: 10px 24px; border-radius: 8px; font-size: 14px;
   font-weight: 500; cursor: pointer; border: none; text-decoration: none;
 }
-.btn-primary { background: #409eff; color: #fff; }
+.btn-primary { background: #5b8def; color: #fff; }
 .btn-secondary { background: #f0f2f5; color: #333; }
 .empty-state {
   text-align: center; padding: 80px 0; color: #888;
@@ -339,11 +339,11 @@ onUnmounted(() => { miniChart?.dispose(); });
   background: #fff; border-radius: 12px; padding: 24px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-.report-section h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #f0f2f5; }
+.report-section h3 { font-size: 16px; color: #374151; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #f0f2f5; }
 
 /* Pollution card */
 .pollution-card {
-  border-left: 4px solid #409eff;
+  border-left: 4px solid #5b8def;
 }
 .pollution-card.level-clean { border-left-color: #27ae60; }
 .pollution-card.level-light { border-left-color: #f39c12; }
@@ -365,7 +365,7 @@ onUnmounted(() => { miniChart?.dispose(); });
 .pollution-score {
   font-size: 48px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #374151;
   line-height: 1;
 }
 .pollution-scale {
