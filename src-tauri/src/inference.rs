@@ -86,7 +86,10 @@ pub fn run_inference(
     let python = if python_bin.exists() {
         python_bin.as_os_str()
     } else {
-        std::ffi::OsStr::new("python3")
+        #[cfg(target_os = "windows")]
+        { std::ffi::OsStr::new("python") }
+        #[cfg(not(target_os = "windows"))]
+        { std::ffi::OsStr::new("python3") }
     };
 
     let mut cmd = Command::new(python);
