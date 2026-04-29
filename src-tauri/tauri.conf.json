@@ -34,7 +34,7 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "python/main.py",
+      "python/*",
       "models/**/*",
       "python-runtime/**/*"
     ]
