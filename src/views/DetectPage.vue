@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useDetectionStore } from "../stores/detection";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -8,6 +9,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 const router = useRouter();
 const route = useRoute();
 const detection = useDetectionStore();
+const { t } = useI18n();
 const mode = ref(route.query.mode || "rgb");
 const availableModels = ref([]);
 const selectedModels = ref([]);
@@ -168,7 +170,7 @@ function onMouseUp() {
 // --- detect ---
 async function confirmAndDetect() {
   if (!cropImage.value || selectedModels.value.length === 0) {
-    detection.error = "Please select an image and at least one model";
+    detection.error = t('detect.errorSelectImage');
     return;
   }
 
@@ -262,7 +264,7 @@ async function confirmAndDetect() {
 // --- multi mode ---
 async function runMultiDetection() {
   if (selectedModels.value.length === 0) {
-    detection.error = "Please select at least one model";
+    detection.error = t('detect.errorSelectModel');
     return;
   }
   const ok = await detection.pickAndDetect(mode.value, selectedModels.value);
@@ -283,21 +285,21 @@ onBeforeUnmount(() => {
 <template>
   <div class="detect-page">
     <div class="detect-container">
-      <h2>Run Detection</h2>
+      <h2>{{ t('detect.title') }}</h2>
 
       <div class="mode-tabs">
-        <button :class="{ active: mode === 'rgb' }" @click="mode = 'rgb'; onModeChange()">RGB Image</button>
-        <button :class="{ active: mode === 'multi' }" @click="mode = 'multi'; onModeChange()">Multi-Channel ZIP</button>
+        <button :class="{ active: mode === 'rgb' }" @click="mode = 'rgb'; onModeChange()">{{ t('detect.rgbTab') }}</button>
+        <button :class="{ active: mode === 'multi' }" @click="mode = 'multi'; onModeChange()">{{ t('detect.multiTab') }}</button>
       </div>
 
       <div class="section">
-        <h3>Models <span class="badge">{{ selectedModels.length }}/{{ availableModels.length }}</span></h3>
+        <h3>{{ t('detect.models') }} <span class="badge">{{ selectedModels.length }}/{{ availableModels.length }}</span></h3>
         <div class="model-actions">
-          <button class="link-btn" @click="selectAll">Select all</button>
-          <button class="link-btn" @click="deselectAll">Deselect all</button>
+          <button class="link-btn" @click="selectAll">{{ t('detect.selectAll') }}</button>
+          <button class="link-btn" @click="deselectAll">{{ t('detect.deselectAll') }}</button>
         </div>
         <div v-if="availableModels.length === 0" class="hint">
-          No .onnx models found in models/{{ mode }}/. Place your models there.
+          {{ t('detect.noModels', { mode }) }}
         </div>
         <div class="model-list">
           <label
@@ -314,18 +316,18 @@ onBeforeUnmount(() => {
       <!-- RGB mode: crop editor -->
       <template v-if="mode === 'rgb'">
         <div class="section" v-if="!cropImage">
-          <button class="pick-btn" @click="pickImage">Pick Image</button>
+          <button class="pick-btn" @click="pickImage">{{ t('detect.pickImage') }}</button>
         </div>
 
         <div class="crop-editor" v-if="cropImage">
           <div class="crop-toolbar">
-            <button @click="rotateCcw" title="Rotate Left">&#x21BA;</button>
-            <button @click="rotateCw" title="Rotate Right">&#x21BB;</button>
-            <button @click="zoomOut" title="Zoom Out">&minus;</button>
+            <button @click="rotateCcw" :title="t('detect.rotateLeft')">&#x21BA;</button>
+            <button @click="rotateCw" :title="t('detect.rotateRight')">&#x21BB;</button>
+            <button @click="zoomOut" :title="t('detect.zoomOut')">&minus;</button>
             <span class="zoom-label">{{ Math.round(scale * 100) }}%</span>
-            <button @click="zoomIn" title="Zoom In">+</button>
-            <button @click="resetCrop" class="reset-btn">Reset</button>
-            <button @click="cropImage = null; cropDataUrl = ''" class="reset-btn">Change Image</button>
+            <button @click="zoomIn" :title="t('detect.zoomIn')">+</button>
+            <button @click="resetCrop" class="reset-btn">{{ t('detect.reset') }}</button>
+            <button @click="cropImage = null; cropDataUrl = ''" class="reset-btn">{{ t('detect.changeImage') }}</button>
           </div>
 
           <div class="crop-stage" ref="cropStage" @wheel.prevent="onWheel">
@@ -347,15 +349,14 @@ onBeforeUnmount(() => {
           </div>
 
           <button class="run-btn" :disabled="detection.isLoading" @click="confirmAndDetect">
-            {{ detection.isLoading ? 'Running...' : 'Confirm & Detect' }}
+            {{ detection.isLoading ? t('detect.running') : t('detect.confirmDetect') }}
           </button>
         </div>
       </template>
 
-      <!-- Multi mode: direct run -->
       <template v-if="mode === 'multi'">
         <button class="run-btn" :disabled="detection.isLoading" @click="runMultiDetection">
-          {{ detection.isLoading ? 'Running...' : 'Pick ZIP & Detect' }}
+          {{ detection.isLoading ? t('detect.running') : t('detect.pickZipDetect') }}
         </button>
       </template>
 

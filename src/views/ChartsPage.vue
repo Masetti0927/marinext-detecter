@@ -1,26 +1,26 @@
 <template>
   <div class="charts-page">
     <div class="charts-header">
-      <h2>Statistical Analysis</h2>
-      <router-link to="/contrast" class="back-link">Back to Contrast</router-link>
+      <h2>{{ t('charts.title') }}</h2>
+      <router-link to="/contrast" class="back-link">{{ t('charts.backToContrast') }}</router-link>
     </div>
 
     <div v-if="!detection.currentId" class="empty-state">
-      <p>No detection data available. Run a detection first.</p>
-      <router-link to="/detect" class="btn btn-primary">Run Detection</router-link>
+      <p>{{ t('charts.noData') }}</p>
+      <router-link to="/detect" class="btn btn-primary">{{ t('charts.runDetection') }}</router-link>
     </div>
 
     <div v-else class="charts-grid">
       <div class="chart-card">
-        <h3>Class Distribution (Pie)</h3>
+        <h3>{{ t('charts.pieChart') }}</h3>
         <div ref="pieChartRef" class="chart-box"></div>
       </div>
       <div class="chart-card">
-        <h3>Pixel Count by Class</h3>
+        <h3>{{ t('charts.barChart') }}</h3>
         <div ref="barChartRef" class="chart-box"></div>
       </div>
       <div class="chart-card chart-card-wide">
-        <h3>Class Percentage (Radar)</h3>
+        <h3>{{ t('charts.radarChart') }}</h3>
         <div ref="radarChartRef" class="chart-box"></div>
       </div>
     </div>
@@ -29,11 +29,17 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, markRaw, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import * as echarts from "echarts";
 import { useDetectionStore } from "../stores/detection";
 import { COLOR_MAP } from "../composables/useMaskProcessing";
 
 const detection = useDetectionStore();
+const { t } = useI18n();
+
+function tClassName(enName) {
+  return t('classes.' + enName);
+}
 
 const pieChartRef = ref(null);
 const barChartRef = ref(null);
@@ -55,6 +61,7 @@ onUnmounted(() => {
 function initCharts() {
   const stats = detection.stats;
   const names = Object.keys(stats);
+  const translatedNames = names.map(n => tClassName(n));
   const percentages = names.map(n => stats[n].percentage);
   const pixelCounts = names.map(n => stats[n].pixel_count);
 
@@ -70,7 +77,7 @@ function initCharts() {
     series: [{
       type: 'pie',
       radius: ['40%', '75%'],
-      data: names.map((n, i) => ({ name: n, value: percentages[i], itemStyle: { color: getColor(n) } })),
+      data: names.map((n, i) => ({ name: translatedNames[i], value: percentages[i], itemStyle: { color: getColor(n) } })),
       label: { formatter: '{b}\n{d}%', fontSize: 10 }
     }]
   });
@@ -79,8 +86,8 @@ function initCharts() {
   barInstance = markRaw(echarts.init(barChartRef.value));
   barInstance.setOption({
     tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: names, axisLabel: { rotate: 45, fontSize: 10 } },
-    yAxis: { type: 'value', name: 'Pixels' },
+    xAxis: { type: 'category', data: translatedNames, axisLabel: { rotate: 45, fontSize: 10 } },
+    yAxis: { type: 'value', name: t('charts.pixels') },
     series: [{
       type: 'bar',
       data: names.map((n, i) => ({ value: pixelCounts[i], itemStyle: { color: getColor(n) } }))
@@ -93,12 +100,12 @@ function initCharts() {
   radarInstance.setOption({
     tooltip: {},
     radar: {
-      indicator: names.map(n => ({ name: n, max: Math.max(...percentages) * 1.2 })),
+      indicator: translatedNames.map((tname, i) => ({ name: tname, max: Math.max(...percentages) * 1.2 })),
       axisName: { fontSize: 10 }
     },
     series: [{
       type: 'radar',
-      data: [{ value: percentages, name: 'Class %', areaStyle: { opacity: 0.3 } }],
+      data: [{ value: percentages, name: t('charts.classPct'), areaStyle: { opacity: 0.3 } }],
       itemStyle: { color: '#5b8def' }
     }]
   });

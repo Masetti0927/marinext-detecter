@@ -1,29 +1,28 @@
 <template>
   <div class="report-page">
     <div class="report-header">
-      <h2>Detection Report</h2>
+      <h2>{{ t('report.title') }}</h2>
       <div class="header-actions">
-        <button class="btn btn-secondary" @click="goToCharts">Charts</button>
-        <button class="btn btn-primary" @click="exportXlsx">Export XLSX</button>
+        <button class="btn btn-secondary" @click="goToCharts">{{ t('report.charts') }}</button>
+        <button class="btn btn-primary" @click="exportXlsx">{{ t('report.exportXlsx') }}</button>
       </div>
     </div>
 
     <div v-if="!detection.currentId" class="empty-state">
-      <p>No detection data available. Run a detection first.</p>
-      <router-link to="/detect" class="btn btn-primary">Run Detection</router-link>
+      <p>{{ t('report.noData') }}</p>
+      <router-link to="/detect" class="btn btn-primary">{{ t('report.runDetection') }}</router-link>
     </div>
 
     <div v-else class="report-body" ref="reportRef">
-      <!-- Pollution Index card -->
       <div class="report-section pollution-card" :class="pollutionLevelClass">
-        <p class="methodology-note">Heuristic score based on weighted class contributions. This is not an official regulatory index — see note below.</p>
+        <p class="methodology-note">{{ t('report.methodologyNote') }}</p>
         <div class="pollution-main">
           <div class="pollution-score-wrap">
             <div class="pollution-score">{{ pollutionIndex }}</div>
-            <div class="pollution-scale">/ 10</div>
+            <div class="pollution-scale">{{ t('report.per10') }}</div>
           </div>
           <div class="pollution-info">
-            <h3>Pollution Index</h3>
+            <h3>{{ t('report.pollutionIndex') }}</h3>
             <div class="pollution-level">{{ pollutionLabel }}</div>
             <p class="pollution-desc">{{ pollutionDesc }}</p>
           </div>
@@ -33,47 +32,39 @@
             <div class="pollution-fill" :style="{ width: (pollutionIndex / 10 * 100) + '%' }"></div>
           </div>
           <div class="pollution-ticks">
-            <span>Clean</span><span>Light</span><span>Moderate</span><span>Heavy</span><span>Severe</span>
+            <span>{{ t('pollution.clean') }}</span><span>{{ t('pollution.light') }}</span><span>{{ t('pollution.moderate') }}</span><span>{{ t('pollution.heavy') }}</span><span>{{ t('pollution.severe') }}</span>
           </div>
         </div>
         <details class="methodology-details">
-          <summary>Methodology</summary>
-          <div class="methodology-content">
-            <p>This score is a <strong>heuristic weighted index</strong> — not an official regulatory metric. No universal standard exists for mapping satellite semantic segmentation labels to a single pollution score. The approach is inspired by:</p>
-            <ul>
-              <li><strong>EU Marine Strategy Framework Directive (MSFD)</strong> — Descriptors 8, 9, 10 for contaminants, eutrophication, and marine litter</li>
-              <li><strong>NOAA Marine Debris Program</strong> — standardized debris monitoring protocols</li>
-              <li><strong>Water Quality Index (CCME WQI)</strong> — weighted aggregation methodology</li>
-            </ul>
-            <p>Each class is assigned a pollution weight (0-10) based on its association with anthropogenic activity or ecosystem stress. The final index = weighted sum of pixel percentages, normalized to 0-10.</p>
-          </div>
+          <summary>{{ t('report.methodology') }}</summary>
+          <div class="methodology-content" v-html="t('report.methodologyContent')"></div>
         </details>
       </div>
 
       <!-- Summary -->
       <div class="report-section">
-        <h3>Summary</h3>
+        <h3>{{ t('report.summary') }}</h3>
         <table class="info-table">
-          <tr><td class="label">File</td><td>{{ fileName }}</td></tr>
-          <tr><td class="label">Mode</td><td>{{ detection.mode }}</td></tr>
-          <tr><td class="label">Image Size</td><td>{{ detection.totalPixels?.toLocaleString() }} px</td></tr>
-          <tr><td class="label">Classes Detected</td><td>{{ Object.keys(detection.stats).length }} / 15</td></tr>
-          <tr><td class="label">Dominant Class</td><td>{{ dominantClassName }}</td></tr>
-          <tr><td class="label">Pollution Level</td><td><span :class="'level-badge ' + pollutionLevelClass">{{ pollutionLabel }}</span></td></tr>
+          <tr><td class="label">{{ t('report.file') }}</td><td>{{ fileName }}</td></tr>
+          <tr><td class="label">{{ t('report.mode') }}</td><td>{{ detection.mode }}</td></tr>
+          <tr><td class="label">{{ t('report.imageSize') }}</td><td>{{ detection.totalPixels?.toLocaleString() }} px</td></tr>
+          <tr><td class="label">{{ t('report.classesDetected') }}</td><td>{{ Object.keys(detection.stats).length }} / 15</td></tr>
+          <tr><td class="label">{{ t('report.dominantClass') }}</td><td>{{ tClassName(dominantClassName) }}</td></tr>
+          <tr><td class="label">{{ t('report.pollutionLevel') }}</td><td><span :class="'level-badge ' + pollutionLevelClass">{{ pollutionLabel }}</span></td></tr>
         </table>
       </div>
 
       <!-- Pollution Contribution Breakdown -->
       <div class="report-section">
-        <h3>Pollution Contribution</h3>
+        <h3>{{ t('report.pollutionContribution') }}</h3>
         <table class="stats-table">
           <thead>
-            <tr><th>Class</th><th>ID</th><th>Pixel %</th><th>Weight</th><th>Contribution</th></tr>
+            <tr><th>{{ t('report.classCol') }}</th><th>{{ t('report.idCol') }}</th><th>{{ t('report.pixelPctCol') }}</th><th>{{ t('report.weightCol') }}</th><th>{{ t('report.contributionCol') }}</th></tr>
           </thead>
           <tbody>
             <tr v-for="(stat, name) in sortedStats" :key="name"
               :class="{ 'polluter-row': POLLUTION_WEIGHTS[stat.class_id] >= 7 }">
-              <td>{{ name }}</td>
+              <td>{{ tClassName(name) }}</td>
               <td>{{ stat.class_id }}</td>
               <td>{{ stat.percentage }}%</td>
               <td>{{ POLLUTION_WEIGHTS[stat.class_id] || 0 }}/10</td>
@@ -90,14 +81,14 @@
 
       <!-- Per-Class Statistics -->
       <div class="report-section">
-        <h3>Per-Class Statistics</h3>
+        <h3>{{ t('report.perClassStats') }}</h3>
         <table class="stats-table">
           <thead>
-            <tr><th>Class</th><th>ID</th><th>Pixel Count</th><th>Percentage</th></tr>
+            <tr><th>{{ t('report.classCol') }}</th><th>{{ t('report.idCol') }}</th><th>{{ t('report.pixelCountCol') }}</th><th>{{ t('report.percentageCol') }}</th></tr>
           </thead>
           <tbody>
             <tr v-for="(stat, name) in sortedStats" :key="name">
-              <td>{{ name }}</td>
+              <td>{{ tClassName(name) }}</td>
               <td>{{ stat.class_id }}</td>
               <td>{{ stat.pixel_count?.toLocaleString() }}</td>
               <td>{{ stat.percentage }}%</td>
@@ -108,7 +99,7 @@
 
       <!-- Chart -->
       <div class="report-section">
-        <h3>Class Coverage</h3>
+        <h3>{{ t('report.classCoverage') }}</h3>
         <div ref="miniChartRef" class="mini-chart"></div>
       </div>
     </div>
@@ -117,6 +108,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, markRaw, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import * as echarts from "echarts";
 import * as XLSX from "xlsx";
 import { useRouter } from "vue-router";
@@ -127,6 +119,11 @@ import { save } from "@tauri-apps/plugin-dialog";
 
 const router = useRouter();
 const detection = useDetectionStore();
+const { t } = useI18n();
+
+function tClassName(enName) {
+  return t('classes.' + enName);
+}
 
 const reportRef = ref(null);
 const miniChartRef = ref(null);
@@ -191,20 +188,20 @@ const pollutionLevelClass = computed(() => {
 
 const pollutionLabel = computed(() => {
   const v = pollutionIndex.value;
-  if (v <= 1.5) return 'Clean';
-  if (v <= 3.0) return 'Light';
-  if (v <= 5.0) return 'Moderate';
-  if (v <= 7.0) return 'Heavy';
-  return 'Severe';
+  if (v <= 1.5) return t('pollution.clean');
+  if (v <= 3.0) return t('pollution.light');
+  if (v <= 5.0) return t('pollution.moderate');
+  if (v <= 7.0) return t('pollution.heavy');
+  return t('pollution.severe');
 });
 
 const pollutionDesc = computed(() => {
   const v = pollutionIndex.value;
-  if (v <= 1.5) return 'Water body appears clean with minimal anthropogenic influence.';
-  if (v <= 3.0) return 'Slight presence of potential pollutants detected; natural conditions largely dominant.';
-  if (v <= 5.0) return 'Moderate pollution indicators suggest human activity or algal presence affecting water quality.';
-  if (v <= 7.0) return 'Significant pollution signals — oil, debris, or industrial presence likely.';
-  return 'Severe pollution detected. Strong presence of oil spills, marine debris, or industrial activity.';
+  if (v <= 1.5) return t('pollution.descClean');
+  if (v <= 3.0) return t('pollution.descLight');
+  if (v <= 5.0) return t('pollution.descModerate');
+  if (v <= 7.0) return t('pollution.descHeavy');
+  return t('pollution.descSevere');
 });
 
 function contribPercent(stat) {
@@ -233,44 +230,44 @@ async function exportXlsx() {
 
   // Sheet 1: Summary
   const summaryData = [
-    ['MarineXt Detection Report'],
+    [t('report.xlsxTitle')],
     [],
-    ['File', fileName.value],
-    ['Mode', detection.mode],
-    ['Image Pixels', detection.totalPixels],
-    ['Classes Detected', `${Object.keys(stats).length} / 15`],
-    ['Dominant Class', dominantClassName.value],
-    ['Pollution Index', `${pollutionIndex.value} / 10`],
-    ['Pollution Level', pollutionLabel.value],
-    ['Assessment', pollutionDesc.value],
+    [t('report.file'), fileName.value],
+    [t('report.mode'), detection.mode],
+    [t('report.imageSize'), detection.totalPixels],
+    [t('report.classesDetected'), `${Object.keys(stats).length} / 15`],
+    [t('report.dominantClass'), tClassName(dominantClassName.value)],
+    [t('report.pollutionIndex'), `${pollutionIndex.value} / 10`],
+    [t('report.pollutionLevel'), pollutionLabel.value],
+    [t('report.xlsxAssessment'), pollutionDesc.value],
   ];
 
   // Sheet 2: Per-Class Statistics
-  const classData = [['Class', 'Class ID', 'Pixel Count', 'Percentage (%)', 'Pollution Weight', 'Contribution (%)']];
+  const classData = [[t('report.classCol'), t('report.xlsxClassId'), t('report.pixelCountCol'), t('report.percentageCol'), t('report.weightCol'), t('report.contributionCol')]];
   for (const name of names) {
     const s = stats[name];
     classData.push([
-      name, s.class_id, s.pixel_count, s.percentage,
+      tClassName(name), s.class_id, s.pixel_count, s.percentage,
       POLLUTION_WEIGHTS[s.class_id] || 0,
       contribPercent(s)
     ]);
   }
 
   // Sheet 3: Pollution Weights Reference
-  const weightData = [['Class ID', 'Class Name', 'Pollution Weight (0-10)', 'Category']];
+  const weightData = [[t('report.xlsxClassId'), t('report.xlsxClassName'), t('report.xlsxPollutionWeight'), t('report.xlsxCategory')]];
   const weightCategories = {
     1: 'Anthropogenic', 2: 'Biological', 3: 'Biological', 4: 'Natural', 5: 'Anthropogenic',
     6: 'Anthropogenic', 7: 'Natural', 8: 'Natural', 9: 'Mixed', 10: 'Mixed',
     11: 'Natural', 12: 'Natural', 13: 'Anthropogenic', 14: 'Biological', 15: 'Biological',
   };
   for (const [clsId, weight] of Object.entries(POLLUTION_WEIGHTS)) {
-    weightData.push([parseInt(clsId), CLASS_NAMES[clsId] || `Class ${clsId}`, weight, weightCategories[clsId] || '']);
+    weightData.push([parseInt(clsId), CLASS_NAMES[clsId] || `Class ${clsId}`, weight, t('weightCategory.' + (weightCategories[clsId] || ''))]);
   }
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), 'Summary');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(classData), 'Class Statistics');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(weightData), 'Weights Reference');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), t('report.xlsxSheet1'));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(classData), t('report.xlsxSheet2'));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(weightData), t('report.xlsxSheet3'));
 
   const wbData = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
 
@@ -298,10 +295,11 @@ onMounted(() => {
       const stats = detection.stats;
       const names = Object.keys(stats);
       const percentages = names.map(n => stats[n].percentage);
+      const translatedNames = names.map(n => tClassName(n));
       miniChart = markRaw(echarts.init(miniChartRef.value));
       miniChart.setOption({
         tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: names, axisLabel: { rotate: 45, fontSize: 9 } },
+        xAxis: { type: 'category', data: translatedNames, axisLabel: { rotate: 45, fontSize: 9 } },
         yAxis: { type: 'value', name: '%' },
         series: [{
           type: 'bar',

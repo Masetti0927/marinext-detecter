@@ -1,9 +1,11 @@
 <script setup>
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useHistoryStore } from "../stores/history";
 
 const router = useRouter();
 const history = useHistoryStore();
+const { t } = useI18n();
 
 function goDetect(mode) {
   router.push({ path: "/detect", query: { mode } });
@@ -18,30 +20,30 @@ async function goToHistory() {
 <template>
   <div class="home-page">
     <div class="hero">
-      <h1>MarineXt Detector</h1>
-      <p class="subtitle">15-Class Marine Semantic Segmentation</p>
+      <h1>{{ t('home.heroTitle') }}</h1>
+      <p class="subtitle">{{ t('home.heroSubtitle') }}</p>
     </div>
 
     <div class="card-grid">
       <button class="mode-card" @click="goDetect('rgb')">
         <div class="card-icon">🖼</div>
-        <h2>RGB Image Detection</h2>
-        <p>Load a 240x240 RGB satellite image and run semantic segmentation inference.</p>
-        <span class="card-tag">PNG / JPG / TIFF</span>
+        <h2>{{ t('home.rgbTitle') }}</h2>
+        <p>{{ t('home.rgbDesc') }}</p>
+        <span class="card-tag">{{ t('home.rgbTag') }}</span>
       </button>
 
       <button class="mode-card" @click="goDetect('multi')">
         <div class="card-icon">📦</div>
-        <h2>Multi-Channel ZIP</h2>
-        <p>Load a ZIP archive containing multi-spectral channel images for inference.</p>
-        <span class="card-tag">ZIP Archive</span>
+        <h2>{{ t('home.multiTitle') }}</h2>
+        <p>{{ t('home.multiDesc') }}</p>
+        <span class="card-tag">{{ t('home.multiTag') }}</span>
       </button>
 
       <button class="mode-card" @click="goToHistory">
         <div class="card-icon">⏰</div>
-        <h2>View History</h2>
-        <p>Browse, search, and filter previous detection results and reports.</p>
-        <span class="card-tag">Browse Records</span>
+        <h2>{{ t('home.historyTitle') }}</h2>
+        <p>{{ t('home.historyDesc') }}</p>
+        <span class="card-tag">{{ t('home.historyTag') }}</span>
       </button>
     </div>
 
