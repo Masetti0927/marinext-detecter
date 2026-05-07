@@ -68,6 +68,7 @@ pub fn run_inference(
     python_dir: &PathBuf,
     model_paths: &[String],
     mode: &str,
+    use_tta:bool,
 ) -> Result<DetectionResult, String> {
     let script_path = python_dir.join("main.py");
 
@@ -105,6 +106,9 @@ pub fn run_inference(
         cmd.arg(mp);
     }
 
+    if use_tta {
+        cmd.arg("--use_tta");
+    }
     // Hide console window on Windows
     #[cfg(target_os = "windows")]
     {
