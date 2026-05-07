@@ -107,7 +107,7 @@ pub fn run_inference(
     }
 
     if use_tta {
-        cmd.arg("--use_tta");
+        cmd.arg("--use-tta");
     }
     // Hide console window on Windows
     #[cfg(target_os = "windows")]
