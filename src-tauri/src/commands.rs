@@ -84,7 +84,7 @@ pub async fn detect_multichannel(
         })
         .collect();
 
-    let result = crate::inference::run_inference(
+    let mut result = crate::inference::run_inference(
         &extract_dir.to_string_lossy(),
         output_dir.to_str().unwrap(),
         &state.python_bin,
@@ -93,6 +93,18 @@ pub async fn detect_multichannel(
         "multichannel",
         use_tta,
     )?;
+
+    // Find the RGB PNG preview image in the extracted files and use it as the original image
+    if let Ok(entries) = std::fs::read_dir(&extract_dir) {
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.extension().map_or(false, |e| e == "png") {
+                result.original_path = p.to_string_lossy().to_string();
+                result.original_base64 = crate::inference::image_to_base64(&result.original_path)?;
+                break;
+            }
+        }
+    }
 
     let file_name = std::path::Path::new(&zip_path)
         .file_name()

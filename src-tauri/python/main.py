@@ -136,18 +136,24 @@ def load_rgb_image(rgb_path: str, target_size=(240, 240)) -> np.ndarray:
     return np.array(img)
 
 
+def get_band(path: str) -> int:
+    """Extract wavelength from filename like 'Scene_0_L2R_rhorc_442_7.tif' -> 442"""
+    return int(os.path.basename(path).split('_')[-2])
+
+
 def load_multichannel_image(input_dir: str, target_size=(240, 240)) -> np.ndarray:
     """
-    Load 11 single-band images from a directory and stack into (H,W,11).
-    Supports .tif, .tiff, .png files. Files are sorted by name to determine band order.
+    Load 11 single-band TIFF images from a directory and stack into (H,W,11).
+    Files are sorted by wavelength (band number), ignoring any RGB PNG.
+    Preserves original physical values (float32/int) without 8-bit truncation.
     """
-    exts = (".tif", ".tiff", ".png", ".jpg", ".jpeg")
+    exts = (".tif", ".tiff")
     files = []
     for root, _dirs, filenames in os.walk(input_dir):
         for fn in filenames:
             if fn.lower().endswith(exts):
                 files.append(os.path.join(root, fn))
-    files = sorted(files)
+    files = sorted(files, key=get_band)
 
     if len(files) != 11:
         raise ValueError(f"Expected 11 band files in {input_dir}, found {len(files)}: {files}")
@@ -155,14 +161,8 @@ def load_multichannel_image(input_dir: str, target_size=(240, 240)) -> np.ndarra
     bands = []
     for fp in files:
         img = Image.open(fp)
-        if img.mode == "L":
-            img = img.resize(target_size, Image.BILINEAR)
-            bands.append(np.array(img, dtype=np.float32))
-        else:
-            # Grayscale conversion for RGB/other modes
-            img = img.convert("L")
-            img = img.resize(target_size, Image.BILINEAR)
-            bands.append(np.array(img, dtype=np.float32))
+        img = img.resize(target_size, Image.BILINEAR)
+        bands.append(np.array(img, dtype=np.float32))
 
     image = np.stack(bands, axis=-1)  # (H,W,11)
     return image
