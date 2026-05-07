@@ -45,8 +45,8 @@ src-tauri/python-runtime/
 ## 3. 安装项目依赖  
 使用该便携式环境自带的工具安装所需的 Python 库：  
 ```bash
-# 升级并启用 
-pip./python-runtime/bin/python3 -m ensurepip --upgrade  
+# 升级并启用 pip
+./python-runtime/bin/python3 -m ensurepip --upgrade  
 # 安装推理相关依赖（会自动安装进 site-packages）  
 ./python-runtime/bin/python3 -m pip install onnxruntime numpy Pillow
 ```  
