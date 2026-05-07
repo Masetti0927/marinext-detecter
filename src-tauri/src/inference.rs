@@ -133,7 +133,11 @@ pub fn run_inference(
     }
 
     // Read images as base64 for frontend display
-    let original_base64 = image_to_base64(input_path)?;
+    let original_base64 = if mode == "multichannel" {
+        String::new()
+    } else {
+        image_to_base64(input_path)?
+    };
     let mask_base64 = image_to_base64(&py_output.mask_path)?;
 
     let id = uuid::Uuid::new_v4().to_string();
