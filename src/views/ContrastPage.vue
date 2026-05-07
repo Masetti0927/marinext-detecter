@@ -76,12 +76,26 @@ watch(() => detection.currentId, async (id) => {
 async function init() {
   chart = markRaw(echarts.init(chartRef.value));
 
-  const [orig, mask] = await Promise.all([
-    loadImage(detection.originalBase64),
-    loadImage(detection.maskBase64)
-  ]);
-  baseImage = orig;
+  const mask = await loadImage(detection.maskBase64);
   maskImage = mask;
+
+  let orig;
+  if (detection.originalBase64) {
+    orig = await loadImage(detection.originalBase64);
+  } else {
+    // Multi-channel mode: create a blank canvas with mask dimensions
+    orig = new Image();
+    orig.width = mask.width;
+    orig.height = mask.height;
+    const c = document.createElement('canvas');
+    c.width = mask.width;
+    c.height = mask.height;
+    c.getContext('2d').fillStyle = '#1a1a1a';
+    c.getContext('2d').fillRect(0, 0, mask.width, mask.height);
+    orig.src = c.toDataURL();
+    await new Promise(r => { orig.onload = r; });
+  }
+  baseImage = orig;
   imgWidth.value = orig.width;
   imgHeight.value = orig.height;
   totalPixels.value = orig.width * orig.height;

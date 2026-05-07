@@ -147,8 +147,12 @@ async function loadItem(item) {
   history.activeId = item.id;
   detection.isLoading = true;
   try {
+    // Multi-channel has no original image, skip loading it
+    const loadOriginal = item.mode !== 'multichannel'
+      ? invoke("get_image_base64", { path: item.original_path })
+      : Promise.resolve('');
     const [originalB64, maskB64] = await Promise.all([
-      invoke("get_image_base64", { path: item.original_path }),
+      loadOriginal,
       invoke("get_image_base64", { path: item.mask_path }),
     ]);
     detection.loadResult({
