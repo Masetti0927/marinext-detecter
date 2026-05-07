@@ -171,7 +171,7 @@ pub fn save_base64_image(data_url: &str, output_path: &str) -> Result<(), String
     Ok(())
 }
 
-fn image_to_base64(path: &str) -> Result<String, String> {
+pub fn image_to_base64(path: &str) -> Result<String, String> {
     use base64::{Engine as _, engine::general_purpose::STANDARD};
     let bytes = std::fs::read(path)
         .map_err(|e| format!("Failed to read image for base64: {}", e))?;
