@@ -1,30 +1,30 @@
 <template>
   <div class="history-page">
     <div class="history-header">
-      <h2>Detection History</h2>
+      <h2>{{ t('history.title') }}</h2>
       <div class="filter-bar">
         <div class="search-box">
           <input
             type="text"
             v-model="history.searchQuery"
             @input="debouncedFilter"
-            placeholder="Search by filename..."
+            :placeholder="t('history.searchPlaceholder')"
           />
         </div>
         <select v-model="history.filterType" @change="history.refreshWithFilters()" class="filter-select">
-          <option value="all">All Classes</option>
+          <option value="all">{{ t('history.allClasses') }}</option>
           <option v-for="(clsId, clsName) in classOptions" :key="clsId" :value="clsId">
-            {{ clsName }}
+            {{ t('classes.' + clsName) }}
           </option>
         </select>
         <input type="date" v-model="history.dateFrom" @change="history.refreshWithFilters()" class="date-input" title="From date" />
         <input type="date" v-model="history.dateTo" @change="history.refreshWithFilters()" class="date-input" title="To date" />
-        <button v-if="history.dateFrom || history.dateTo" class="clear-date-btn" @click="history.clearDateFilter(); history.refreshWithFilters()">Clear dates</button>
+        <button v-if="history.dateFrom || history.dateTo" class="clear-date-btn" @click="history.clearDateFilter(); history.refreshWithFilters()">{{ t('history.clearDates') }}</button>
         <button class="sort-btn" @click="history.toggleSort(); history.refreshWithFilters()">
-          {{ history.sortDesc ? 'Newest first' : 'Oldest first' }}
+          {{ history.sortDesc ? t('history.newestFirst') : t('history.oldestFirst') }}
         </button>
-        <button class="reset-btn" @click="resetAllFilters">Reset Filters</button>
-        <button class="refresh-btn" @click="history.loadHistory()">Refresh</button>
+        <button class="reset-btn" @click="resetAllFilters">{{ t('history.resetFilters') }}</button>
+        <button class="refresh-btn" @click="history.loadHistory()">{{ t('history.refresh') }}</button>
       </div>
     </div>
 
@@ -36,7 +36,7 @@
       >
         <div class="group-header">
           <span class="group-name" :title="fileName">{{ fileName }}</span>
-          <span class="group-count">{{ entries.length }} {{ entries.length === 1 ? 'result' : 'results' }}</span>
+          <span class="group-count">{{ entries.length }} {{ entries.length === 1 ? t('history.result') : t('history.results') }}</span>
         </div>
         <div
           v-for="item in entries"
@@ -64,8 +64,8 @@
     </div>
 
     <div v-else class="empty-state">
-      <p>No history records found.</p>
-      <router-link to="/detect" class="btn btn-primary">Run Detection</router-link>
+      <p>{{ t('history.noRecords') }}</p>
+      <router-link to="/detect" class="btn btn-primary">{{ t('history.runDetection') }}</router-link>
     </div>
   </div>
 </template>
@@ -73,11 +73,13 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useHistoryStore } from "../stores/history";
 import { useDetectionStore } from "../stores/detection";
 import { invoke } from "@tauri-apps/api/core";
 
 const router = useRouter();
+const { t } = useI18n();
 const history = useHistoryStore();
 const detection = useDetectionStore();
 

@@ -3,7 +3,7 @@
   <div class="app-shell">
     <!-- Custom title bar -->
     <header class="app-header" data-tauri-drag-region>
-      <div class="header-title" data-tauri-drag-region>MarineXt Detector</div>
+      <div class="header-title" data-tauri-drag-region>{{ t('app.title') }}</div>
       <div class="header-controls">
         <button class="win-btn" @click="minimize" title="Minimize">&minus;</button>
         <button class="win-btn" @click="toggleMaximize" title="Maximize">□</button>
@@ -23,9 +23,15 @@
             @click="navigateTo(item.path)"
           >
             <span class="nav-icon">{{ item.icon }}</span>
-            <span class="nav-label">{{ item.label }}</span>
+            <span class="nav-label">{{ t(item.label) }}</span>
           </button>
         </nav>
+        <div class="sidebar-lang">
+          <button class="lang-toggle" @click="toggleLang">
+            <span class="lang-flag">{{ locale === 'en' ? '英' : '中' }}</span>
+            <span class="lang-label">{{ locale === 'en' ? 'EN' : '中文' }}</span>
+          </button>
+        </div>
       </aside>
 
       <main class="main-content">
@@ -39,18 +45,18 @@
       <div class="footer-left">
         <template v-if="detection.isLoading">
           <span class="footer-spinner"></span>
-          <span class="footer-badge loading">Processing{{ elapsed ? ' ' + elapsed : '' }}</span>
+          <span class="footer-badge loading">{{ t('footer.processing') }}{{ elapsed ? ' ' + elapsed : '' }}</span>
         </template>
         <template v-else-if="detection.error">
           <span class="footer-badge error">{{ detection.error }}</span>
           <button class="footer-dismiss" @click="dismissError">&times;</button>
         </template>
         <template v-else-if="hasResult">
-          <span class="footer-badge ready">Result ready</span>
+          <span class="footer-badge ready">{{ t('footer.resultReady') }}</span>
           <span class="footer-mode">{{ detection.mode }}</span>
         </template>
         <template v-else>
-          <span class="footer-badge idle">Ready</span>
+          <span class="footer-badge idle">{{ t('footer.ready') }}</span>
         </template>
       </div>
       <div class="footer-right">
@@ -63,22 +69,29 @@
 <script setup>
 import { ref, watch, onUnmounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useDetectionStore } from "./stores/detection";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 const router = useRouter();
 const route = useRoute();
+const { t, locale } = useI18n();
 const detection = useDetectionStore();
 const appWindow = getCurrentWindow();
 
 const navItems = [
-  { path: "/", label: "Home", icon: "⌂" },
-  { path: "/detect", label: "Detect", icon: "◎" },
-  { path: "/contrast", label: "Contrast", icon: "◉" },
-  { path: "/charts", label: "Charts", icon: "▤" },
-  { path: "/report", label: "Report", icon: "☰" },
-  { path: "/history", label: "History", icon: "⏰" },
+  { path: "/", label: "nav.home", icon: "⌂" },
+  { path: "/detect", label: "nav.detect", icon: "◎" },
+  { path: "/contrast", label: "nav.contrast", icon: "◉" },
+  { path: "/charts", label: "nav.charts", icon: "▤" },
+  { path: "/report", label: "nav.report", icon: "☰" },
+  { path: "/history", label: "nav.history", icon: "⏰" },
 ];
+
+function toggleLang() {
+  locale.value = locale.value === "en" ? "zh" : "en";
+  localStorage.setItem("locale", locale.value);
+}
 
 const hasResult = computed(() => !!detection.currentId);
 
@@ -267,6 +280,42 @@ html, body {
   text-align: center;
   flex-shrink: 0;
 }
+
+	/* ---- lang toggle ---- */
+	.sidebar-lang {
+	  padding: 8px 10px 16px;
+	}
+
+	.lang-toggle {
+	  display: flex;
+	  align-items: center;
+	  gap: 8px;
+	  width: 100%;
+	  padding: 8px 14px;
+	  background: transparent;
+	  border: 1px solid #e5e7eb;
+	  border-radius: 10px;
+	  color: #6b7280;
+	  font-size: 12px;
+	  cursor: pointer;
+	  transition: all 0.15s ease;
+	}
+
+	.lang-toggle:hover {
+	  background: #eef1f5;
+	  color: #374151;
+	  border-color: #d1d5db;
+	}
+
+	.lang-flag {
+	  font-size: 14px;
+	  width: 20px;
+	  text-align: center;
+	}
+
+	.lang-label {
+	  font-weight: 500;
+	}
 
 /* ---- main ---- */
 .main-content {

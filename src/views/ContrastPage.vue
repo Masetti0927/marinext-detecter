@@ -1,11 +1,17 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, markRaw } from 'vue';
+import { useI18n } from 'vue-i18n';
 import * as echarts from 'echarts';
 import { useDetectionStore } from '../stores/detection';
 import { useMaskProcessing } from '../composables/useMaskProcessing';
 
 const detection = useDetectionStore();
+const { t } = useI18n();
 const { processMaskData, buildClassOverlay, buildMainOverlay, buildBoundaryOverlay, getClassColor, getClassName } = useMaskProcessing();
+
+function tClassName(cls) {
+  return t('classes.' + getClassName(cls));
+}
 
 // --- state ---
 const chartRef = ref(null);
@@ -230,26 +236,26 @@ function loadImage(src) {
 <template>
   <div class="contrast-root" v-if="!detection.currentId">
     <div class="empty-state">
-      <p>No detection data available. Run a detection first.</p>
-      <router-link to="/detect" class="btn-primary">Run Detection</router-link>
+      <p>{{ t('contrast.noData') }}</p>
+      <router-link to="/detect" class="btn-primary">{{ t('contrast.runDetection') }}</router-link>
     </div>
   </div>
 
   <div class="contrast-root" v-else>
     <div class="canvas-panel">
       <div class="hint-bar">
-        <span>Scroll: zoom</span>
-        <span>Drag: pan</span>
-        <span v-if="lockedClasses.size">{{ lockedClasses.size }} locked</span>
+        <span>{{ t('contrast.scrollZoom') }}</span>
+        <span>{{ t('contrast.dragPan') }}</span>
+        <span v-if="lockedClasses.size">{{ lockedClasses.size }} {{ t('contrast.locked') }}</span>
       </div>
       <div ref="chartRef" class="echarts-host"></div>
     </div>
 
     <aside class="side-panel">
       <section class="panel-block">
-        <h4>Controls</h4>
+        <h4>{{ t('contrast.controls') }}</h4>
         <div class="toggle-row">
-          <span>Show Mask</span>
+          <span>{{ t('contrast.showMask') }}</span>
           <label class="toggle-switch">
             <input type="checkbox" v-model="maskVisible" />
             <span class="toggle-track"></span>
@@ -257,21 +263,21 @@ function loadImage(src) {
         </div>
 
         <label class="slider-row">
-          <span>Opacity</span>
+          <span>{{ t('contrast.opacity') }}</span>
           <span class="slider-val">{{ Math.round(maskOpacity * 100) }}%</span>
         </label>
         <input type="range" min="0" max="1" step="0.05" v-model="maskOpacity" class="slider" :style="{ background: opacitySliderBg }" />
 
         <label class="slider-row">
-          <span>Threshold</span>
+          <span>{{ t('contrast.threshold') }}</span>
           <span class="slider-val">{{ maskThreshold }}%</span>
         </label>
         <input type="range" min="0" max="5" step="0.1" v-model="maskThreshold" class="slider" :style="{ background: thresholdSliderBg }" />
-        <p class="hint">Classes below threshold are hidden</p>
+        <p class="hint">{{ t('contrast.thresholdHint') }}</p>
       </section>
 
       <section class="panel-block legend-block">
-        <h4>Classes</h4>
+        <h4>{{ t('contrast.classes') }}</h4>
         <div class="legend-list" v-if="filteredLegend.length">
           <div
             v-for="cls in filteredLegend" :key="cls"
@@ -282,15 +288,15 @@ function loadImage(src) {
             @click="toggleLock(cls)"
           >
             <span class="swatch" :style="{ background: getClassColor(cls) }"></span>
-            <span class="cls-name">{{ getClassName(cls) }}</span>
+            <span class="cls-name">{{ tClassName(cls) }}</span>
             <span v-if="lockedClasses.has(cls)" class="lock-icon">P</span>
             <div class="cls-detail" v-show="hoveredClass === cls || lockedClasses.has(cls)">
-              <span>{{ (pixelCounts[cls] || 0).toLocaleString() }} px</span>
+              <span>{{ (pixelCounts[cls] || 0).toLocaleString() }} {{ t('contrast.px') }}</span>
               <span>{{ ((pixelCounts[cls] || 0) / totalPixels * 100).toFixed(3) }}%</span>
             </div>
           </div>
         </div>
-        <p v-else class="empty">No classes above threshold</p>
+        <p v-else class="empty">{{ t('contrast.noClasses') }}</p>
       </section>
     </aside>
   </div>
