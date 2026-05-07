@@ -1,18 +1,19 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
-import { useDetectionStore } from "../stores/detection";
-import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import {ref, reactive, computed, onMounted, onBeforeUnmount, nextTick} from "vue";
+import {useRouter, useRoute} from "vue-router";
+import {useI18n} from "vue-i18n";
+import {useDetectionStore} from "../stores/detection";
+import {invoke} from "@tauri-apps/api/core";
+import {open} from "@tauri-apps/plugin-dialog";
 
 const router = useRouter();
 const route = useRoute();
 const detection = useDetectionStore();
-const { t } = useI18n();
+const {t} = useI18n();
 const mode = ref(route.query.mode || "rgb");
 const availableModels = ref([]);
 const selectedModels = ref([]);
+const useTta = ref(false)
 
 onMounted(() => loadModels());
 
@@ -36,8 +37,13 @@ function toggleModel(name) {
   else selectedModels.value.push(name);
 }
 
-function selectAll() { selectedModels.value = availableModels.value.map(m => m.name); }
-function deselectAll() { selectedModels.value = []; }
+function selectAll() {
+  selectedModels.value = availableModels.value.map(m => m.name);
+}
+
+function deselectAll() {
+  selectedModels.value = [];
+}
 
 // --- crop editor state ---
 const cropStage = ref(null);
@@ -46,7 +52,7 @@ const cropDataUrl = ref('');
 const imagePath = ref('');
 const scale = ref(1);
 const rotation = ref(0);
-const cropRect = reactive({ x: 80, y: 60, w: 260, h: 220 });
+const cropRect = reactive({x: 80, y: 60, w: 260, h: 220});
 
 const drag = reactive({
   active: false,
@@ -84,13 +90,13 @@ function initCrop() {
 
 async function pickImage() {
   const filePath = await open({
-    filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "bmp", "tiff"] }],
+    filters: [{name: "Images", extensions: ["png", "jpg", "jpeg", "bmp", "tiff"]}],
     multiple: false,
   });
   if (!filePath) return;
 
   imagePath.value = filePath;
-  const b64 = await invoke("get_image_base64", { path: filePath });
+  const b64 = await invoke("get_image_base64", {path: filePath});
   cropDataUrl.value = b64;
 
   const img = new Image();
@@ -104,11 +110,27 @@ async function pickImage() {
 }
 
 // --- zoom ---
-function zoomIn() { scale.value = Math.min(5, scale.value + 0.1); }
-function zoomOut() { scale.value = Math.max(0.2, scale.value - 0.1); }
-function rotateCw() { rotation.value += 90; }
-function rotateCcw() { rotation.value -= 90; }
-function resetCrop() { scale.value = 1; rotation.value = 0; nextTick(() => initCrop()); }
+function zoomIn() {
+  scale.value = Math.min(5, scale.value + 0.1);
+}
+
+function zoomOut() {
+  scale.value = Math.max(0.2, scale.value - 0.1);
+}
+
+function rotateCw() {
+  rotation.value += 90;
+}
+
+function rotateCcw() {
+  rotation.value -= 90;
+}
+
+function resetCrop() {
+  scale.value = 1;
+  rotation.value = 0;
+  nextTick(() => initCrop());
+}
 
 function onWheel(e) {
   e.preventDefault();
@@ -241,6 +263,7 @@ async function confirmAndDetect() {
       base64Data,
       modelNames: selectedModels.value,
       fileName: originalFileName,
+      useTta: useTta.value,
     });
 
     // Pinia unwraps refs — assign directly, no .value needed
@@ -267,7 +290,7 @@ async function runMultiDetection() {
     detection.error = t('detect.errorSelectModel');
     return;
   }
-  const ok = await detection.pickAndDetect(mode.value, selectedModels.value);
+  const ok = await detection.pickAndDetect(mode.value, selectedModels.value, useTta.value);
   if (ok) router.push("/contrast");
 }
 
@@ -288,29 +311,44 @@ onBeforeUnmount(() => {
       <h2>{{ t('detect.title') }}</h2>
 
       <div class="mode-tabs">
-        <button :class="{ active: mode === 'rgb' }" @click="mode = 'rgb'; onModeChange()">{{ t('detect.rgbTab') }}</button>
-        <button :class="{ active: mode === 'multi' }" @click="mode = 'multi'; onModeChange()">{{ t('detect.multiTab') }}</button>
+        <button :class="{ active: mode === 'rgb' }" @click="mode = 'rgb'; onModeChange()">{{
+            t('detect.rgbTab')
+          }}
+        </button>
+        <button :class="{ active: mode === 'multi' }" @click="mode = 'multi'; onModeChange()">{{
+            t('detect.multiTab')
+          }}
+        </button>
       </div>
 
       <div class="section">
-        <h3>{{ t('detect.models') }} <span class="badge">{{ selectedModels.length }}/{{ availableModels.length }}</span></h3>
+        <h3>{{ t('detect.models') }} <span class="badge">{{ selectedModels.length }}/{{ availableModels.length }}</span>
+        </h3>
         <div class="model-actions">
           <button class="link-btn" @click="selectAll">{{ t('detect.selectAll') }}</button>
           <button class="link-btn" @click="deselectAll">{{ t('detect.deselectAll') }}</button>
         </div>
         <div v-if="availableModels.length === 0" class="hint">
-          {{ t('detect.noModels', { mode }) }}
+          {{ t('detect.noModels', {mode}) }}
         </div>
         <div class="model-list">
           <label
-            v-for="m in availableModels" :key="m.name"
-            class="model-chip"
-            :class="{ checked: selectedModels.includes(m.name) }"
+              v-for="m in availableModels" :key="m.name"
+              class="model-chip"
+              :class="{ checked: selectedModels.includes(m.name) }"
           >
-            <input type="checkbox" :checked="selectedModels.includes(m.name)" @change="toggleModel(m.name)" />
+            <input type="checkbox" :checked="selectedModels.includes(m.name)" @change="toggleModel(m.name)"/>
             {{ m.name }}
           </label>
         </div>
+      </div>
+
+      <div class="tta-row">
+        <label class="tta-toggle">
+          <input type="checkbox" v-model="useTta"/>
+          <span class="tta-track"></span>
+          <span class="tta-label">{{ t('detect.useTta') }}</span>
+        </label>
       </div>
 
       <!-- RGB mode: crop editor -->
@@ -332,18 +370,18 @@ onBeforeUnmount(() => {
 
           <div class="crop-stage" ref="cropStage" @wheel.prevent="onWheel">
             <img
-              :src="cropDataUrl"
-              class="crop-img"
-              :style="imageStyle"
+                :src="cropDataUrl"
+                class="crop-img"
+                :style="imageStyle"
             />
             <div
-              class="crop-box"
-              :style="cropBoxStyle"
-              @mousedown="startDrag"
+                class="crop-box"
+                :style="cropBoxStyle"
+                @mousedown="startDrag"
             >
               <span
-                class="resize-handle"
-                @mousedown="startResize"
+                  class="resize-handle"
+                  @mousedown="startResize"
               ></span>
             </div>
           </div>
@@ -366,87 +404,171 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .detect-page {
-  display: flex; align-items: center; justify-content: center;
-  height: 100%; padding: 40px; background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+  background: #f3f4f6;
   overflow-y: auto;
 }
+
 .detect-container {
-  max-width: 560px; width: 100%;
+  max-width: 560px;
+  width: 100%;
 }
-h2 { font-size: 22px; color: #374151; margin-bottom: 20px; }
+
+h2 {
+  font-size: 22px;
+  color: #374151;
+  margin-bottom: 20px;
+}
 
 .mode-tabs {
-  display: flex; gap: 0; margin-bottom: 24px;
-  border-radius: 8px; overflow: hidden; border: 1px solid #d0d5dd;
-}
-.mode-tabs button {
-  flex: 1; padding: 10px; border: none;
-  background: #fff; cursor: pointer; font-size: 14px;
-  transition: all 0.15s;
-}
-.mode-tabs button.active {
-  background: #5b8def; color: #fff;
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #d0d5dd;
 }
 
-.section { margin-bottom: 24px; }
-.section h3 { font-size: 15px; color: #333; margin-bottom: 8px; }
+.mode-tabs button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.mode-tabs button.active {
+  background: #5b8def;
+  color: #fff;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section h3 {
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
 .badge {
-  font-size: 12px; color: #5b8def;
-  background: rgba(64,158,255,0.1);
-  padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+  font-size: 12px;
+  color: #5b8def;
+  background: rgba(64, 158, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
 }
-.model-actions { display: flex; gap: 12px; margin-bottom: 8px; }
+
+.model-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .link-btn {
-  background: none; border: none; color: #5b8def;
-  font-size: 12px; cursor: pointer;
+  background: none;
+  border: none;
+  color: #5b8def;
+  font-size: 12px;
+  cursor: pointer;
 }
-.model-list { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.model-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .model-chip {
-  display: flex; align-items: center; gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 14px;
-  border: 1px solid #d9d9d9; border-radius: 16px;
-  font-size: 13px; cursor: pointer;
+  border: 1px solid #d9d9d9;
+  border-radius: 16px;
+  font-size: 13px;
+  cursor: pointer;
   transition: all 0.15s;
   background: #fff;
 }
-.model-chip.checked { border-color: #5b8def; background: #e8f0fe; }
-.model-chip input { display: none; }
+
+.model-chip.checked {
+  border-color: #5b8def;
+  background: #e8f0fe;
+}
+
+.model-chip input {
+  display: none;
+}
 
 .pick-btn {
-  width: 100%; padding: 14px;
-  background: #fff; color: #5b8def;
-  border: 2px dashed #5b8def; border-radius: 10px;
-  font-size: 16px; font-weight: 600;
-  cursor: pointer; transition: all 0.15s;
+  width: 100%;
+  padding: 14px;
+  background: #fff;
+  color: #5b8def;
+  border: 2px dashed #5b8def;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.pick-btn:hover { background: #e8f0fe; }
+
+.pick-btn:hover {
+  background: #e8f0fe;
+}
 
 /* --- crop editor --- */
 .crop-editor {
   margin-bottom: 24px;
 }
+
 .crop-toolbar {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 10px;
 }
+
 .crop-toolbar button {
-  width: 32px; height: 32px;
-  border: 1px solid #d9d9d9; border-radius: 6px;
-  background: #fff; cursor: pointer;
-  font-size: 16px; display: flex;
-  align-items: center; justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s;
 }
-.crop-toolbar button:hover { border-color: #5b8def; color: #5b8def; }
-.crop-toolbar .zoom-label {
-  font-size: 12px; color: #666;
-  min-width: 40px; text-align: center;
+
+.crop-toolbar button:hover {
+  border-color: #5b8def;
+  color: #5b8def;
 }
+
+.crop-toolbar .zoom-label {
+  font-size: 12px;
+  color: #666;
+  min-width: 40px;
+  text-align: center;
+}
+
 .crop-toolbar .reset-btn {
-  width: auto; padding: 0 10px;
-  font-size: 12px; margin-left: auto;
+  width: auto;
+  padding: 0 10px;
+  font-size: 12px;
+  margin-left: auto;
 }
 
 .crop-stage {
@@ -471,9 +593,9 @@ h2 { font-size: 22px; color: #374151; margin-bottom: 20px; }
 .crop-box {
   position: absolute;
   border: 2px solid #5b8def;
-  background: rgba(64,158,255,0.08);
+  background: rgba(64, 158, 255, 0.08);
   cursor: move;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
 }
 
 .resize-handle {
@@ -487,15 +609,78 @@ h2 { font-size: 22px; color: #374151; margin-bottom: 20px; }
   cursor: nwse-resize;
 }
 
-.hint { font-size: 12px; color: #999; margin-top: 4px; }
+.hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.tta-row {
+  margin-bottom: 24px;
+}
+
+.tta-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tta-toggle input { display: none; }
+
+.tta-track {
+  position: relative;
+  width: 42px;
+  height: 22px;
+  background: #ccc;
+  border-radius: 11px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.tta-track::before {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 18px; height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.tta-toggle input:checked + .tta-track {
+  background: #5b8def;
+}
+.tta-toggle input:checked + .tta-track::before {
+  transform: translateX(20px);
+}
+
+.tta-label {
+  font-size: 13px;
+  color: #555;
+}
 
 .run-btn {
-  width: 100%; padding: 14px;
-  background: #5b8def; color: #fff;
-  border: none; border-radius: 10px;
-  font-size: 16px; font-weight: 600;
-  cursor: pointer; transition: all 0.15s;
+  width: 100%;
+  padding: 14px;
+  background: #5b8def;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.run-btn:hover:not(:disabled) { background: #337ecc; }
-.run-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.run-btn:hover:not(:disabled) {
+  background: #337ecc;
+}
+
+.run-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 </style>

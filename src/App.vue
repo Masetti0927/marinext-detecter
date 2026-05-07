@@ -48,7 +48,7 @@
           <span class="footer-badge loading">{{ t('footer.processing') }}{{ elapsed ? ' ' + elapsed : '' }}</span>
         </template>
         <template v-else-if="detection.error">
-          <span class="footer-badge error">{{ detection.error }}</span>
+          <span class="footer-badge error" :title="detection.error">{{ detection.error }}</span>
           <button class="footer-dismiss" @click="dismissError">&times;</button>
         </template>
         <template v-else-if="hasResult">

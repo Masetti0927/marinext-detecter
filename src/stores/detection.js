@@ -15,8 +15,8 @@ export const useDetectionStore = defineStore("detection", () => {
   const currentId = ref("");
   const mode = ref("");
 
-  async function pickAndDetect(detectMode, modelNames) {
-    try {
+async function pickAndDetect(detectMode, modelNames, useTta = false) {
+  try {
       let filePath;
       if (detectMode === "rgb") {
         filePath = await open({
@@ -38,7 +38,7 @@ export const useDetectionStore = defineStore("detection", () => {
 
       const cmd = detectMode === "rgb" ? "detect_rgb" : "detect_multichannel";
       const argKey = detectMode === "rgb" ? "imagePath" : "zipPath";
-      const result = await invoke(cmd, { [argKey]: filePath, modelNames });
+       const result = await invoke(cmd, { [argKey]: filePath, modelNames, useTta });
 
       originalPath.value = result.original_path;
       maskPath.value = result.mask_path;

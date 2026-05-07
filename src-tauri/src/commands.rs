@@ -16,6 +16,7 @@ pub async fn detect_rgb(
     state: State<'_, AppState>,
     image_path: String,
     model_names: Vec<String>,
+    use_tta: bool,
 ) -> Result<DetectionResult, String> {
     let run_id = uuid::Uuid::new_v4().to_string();
     let output_dir = state.output_base.join(&run_id);
@@ -39,6 +40,7 @@ pub async fn detect_rgb(
         &state.python_dir,
         &model_paths,
         "rgb",
+        use_tta,
     )?;
 
     let file_name = std::path::Path::new(&image_path)
@@ -56,6 +58,7 @@ pub async fn detect_multichannel(
     state: State<'_, AppState>,
     zip_path: String,
     model_names: Vec<String>,
+    use_tta: bool,
 ) -> Result<DetectionResult, String> {
     let run_id = uuid::Uuid::new_v4().to_string();
     let output_dir = state.output_base.join(&run_id);
@@ -88,6 +91,7 @@ pub async fn detect_multichannel(
         &state.python_dir,
         &model_paths,
         "multichannel",
+        use_tta,
     )?;
 
     let file_name = std::path::Path::new(&zip_path)
@@ -114,6 +118,7 @@ pub async fn detect_rgb_data(
     base64_data: String,
     model_names: Vec<String>,
     file_name: String,
+    use_tta:bool,
 ) -> Result<DetectionResult, String> {
     let run_id = uuid::Uuid::new_v4().to_string();
     let output_dir = state.output_base.join(&run_id);
@@ -141,6 +146,7 @@ pub async fn detect_rgb_data(
         &state.python_dir,
         &model_paths,
         "rgb",
+        use_tta,
     )?;
 
     state.history.add(&result, &file_name);
