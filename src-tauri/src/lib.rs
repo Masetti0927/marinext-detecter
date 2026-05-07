@@ -25,9 +25,12 @@ pub fn run() {
             // ONNX models
             let model_dir = resource_dir.join("models");
 
-            let data_dir = dirs::home_dir()
-                .unwrap_or_else(|| PathBuf::from("."))
-                .join(".marine_detecter");
+            // Portable: use exe directory as base for all data
+            let exe_dir = std::env::current_exe()
+                .ok()
+                .and_then(|p| p.parent().map(|d| d.to_path_buf()))
+                .unwrap_or_else(|| PathBuf::from("."));
+            let data_dir = exe_dir.join("data");
 
             app.manage(AppState {
                 python_bin,
